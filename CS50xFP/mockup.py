@@ -7,6 +7,8 @@ from time import sleep as sp
 from time import time as tm
 from datetime import datetime as dt
 from random import uniform as uf
+from utils import clear, printc, timestamp
+
 
 # check for colab
 try:
@@ -25,28 +27,6 @@ if SIZE < 120:
 
 HOST = "127.0.0.1" # server address
 SOCKET = 65432     # server port
-
-def clear() -> None:
-  if name == "nt":
-    system("cls")
-  elif use_colab:
-    output.clear() # type: ignore
-  else:
-    system("clear")
-
-# print(f"{'':^{SIZE}}")
-def printc(string: str) -> None:
-  '''
-  prints a line {string} centered to the terminal size
-  '''
-  print(f"{string:^{SIZE}}")
-
-def timestamp() -> str:
-  '''
-  gets the current timestamp
-  format:
-  '''
-  return dt.now().strftime("%Y/%m/%d - %H:%M:%S")
 
 # redacted message
 def redacted(file: str) -> None:
