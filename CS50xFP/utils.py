@@ -1,7 +1,7 @@
 from cs50 import SQL
 from dataclasses import dataclass
 
-@dataclass
+@dataclass(slots=True)
 class User:
     '''
     A dataclass to store important information after
