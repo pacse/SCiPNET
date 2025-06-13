@@ -1,46 +1,59 @@
-from cs50 import SQL
+from cs50 import SQL # type: ignore
 from dataclasses import dataclass
+from datetime import datetime as dt
+from os import name, system
+from os import get_terminal_size as gts
+
+HOST = "127.0.0.1" # server address
+PORT = 65432     # server port
+
+try:
+  SIZE = gts().columns
+except OSError:
+  SIZE = 120 # type: ignore
+
+if SIZE < 120:
+  raise Exception(f"Requires terminal size of 120 columns (current size {SIZE})")
+
+# Deepwell database connection
+db = SQL("sqlite:///SCiPNETdeepwell.db")
 
 @dataclass(slots=True)
 class User:
-    '''
-    A dataclass to store important information after
-    getting a user's data from the deepwell database
-    '''
-    id: int
-    name: str
-    password: str
-    clearance_level: int
-    title: str
-    site: int
-    phrase: str | None = None # not required for lower level personnel
+  '''
+  A dataclass to store important information after
+  getting a user's data from the deepwell database
+  '''
+  id: int
+  name: str
+  password: str
+  clearance_level: int
+  title: str
+  site: int
+  phrase: str | None = None # not required for lower level personnel
 
-def init_usr(info: dict) -> User:
-    '''
-    Stores user data from a deepewell
-    request in a user dataclass
-    '''
-    id = info["id"]
-    name = info["name"]
-    password = info["password"]
-    clearance_level = info["clearance_level_id"]
-    title = info["title_id"]
-    site = info["site_id"]
-    phrase = info["phrase"]
+def init_usr(info: dict[str, str | int | None]) -> User:
+  '''
+  Stores user data from a deepwell
+  request in a user dataclass
+  '''
 
-    return User(id, name, password, clearance_level, title, site, phrase)
-
-# SQL database
-db = SQL("sqlite:///SCiPNETdeepwell.db")
+  return User(
+    int(info["id"]), # type: ignore
+    str(info["name"]), # type: ignore
+    str(info["password"]), # type: ignore
+    int(info["clearance_level_id"]), # type: ignore
+    str(info["title_id"]), # type: ignore
+    int(info["site_id"]), # type: ignore
+    info["phrase"] if info["phrase"] is not None else None # type: ignore
+    )
 
 def clear() -> None:
-    '''
-    Clears the screen
-    '''
+  '''
+  Clears the screen
+  '''
   if name == "nt":
     system("cls")
-  elif use_colab:
-    output.clear() # type: ignore
   else:
     system("clear")
 
