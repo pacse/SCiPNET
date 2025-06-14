@@ -5,8 +5,8 @@ Server for CS50x Final Project - SCiPNET
 import json
 import socket
 from threading import active_count, Thread
-from typing import Any
-from utils import ADDR, db, init_usr, User
+from typing import Any, cast
+from utils import ADDR, db, init_usr, log_event, User
 
 
 def encode(data: Any) -> Any:
@@ -40,50 +40,41 @@ def auth_usr(id: int, password: str) -> tuple[bool, User | None]:
         return True, init_usr(row) # return True and a User dataclass
     else: # failure
     	return False, None # return False and None for User dataclass
-        
-
-def get_auth(c: socket.socket, limit: int = 3) -> tuple[bool, int, str]:
-    # TODO: Validate
-    # TODO: Transmit user data securely !!!!!!!!
-    '''
-    gets a client's authentication
-    request limited: 3 by default
-    returns id and password received, bool is if limit was exceeded
-    '''
-    for i in range(limit): # limit client auth requests
-        c.sendall(encode("AUTH")) # request auth from client
-        data = c.recv(1024) # receive auth
-        if data: # no more loop if we received auth
-            data = decode(data) # decode data
-            return False, int(data[1]), data[2] # False, id, pw
-    else: # request limit exceeded
-        return True, 0, "" # True without id/pw
+    
 
 def handle_usr(client: socket.socket, addr, thread_id: int) -> None:
     '''
     TODO: Implement logic
-    1. Request auth
-    2. validate auth
+    1. receive auth ✅
+    2. validate auth ✅
     if not valid:
-    	log to "overwatch command"
-        kick client
+    	log to "overwatch command" ✅
+        kick client ✅
     while True:
     	get data request (file access, edit, ect)
         handle request
     '''
-    exceeded, id, pw = get_auth(client)
-    if exceeded:
-        print(f"[THREAD {thread_id}] Authentication limit exceeded for client {addr}")
-        client.sendall(encode("INVALID"))
+    # receive auth from client
+    data = client.recv(1024)
+    data = decode(data) # decode data
+
+    # ensure it was an auth request
+    if not data or data[0] != "AUTH" or len(data) != 3:
+        print(f"[THREAD {thread_id}] Invalid auth request: {data}")
+        client.sendall(encode(False))
         return
     
-    valid, usr = auth_usr(id, pw) # if valid, usr is a User class
+    valid, usr = auth_usr(data[1], data[2]) # if valid, usr is a User class
     if not valid:
-        client.sendall(encode("INVALID"))
+        client.sendall(encode(False))
+        log_event(data[1], "login", f"Failed login attempt from {addr[0]}:{addr[1]} with id {data[1]!r} and password {data[2]!r}") # log to audit log
         return
+    else:
+        usr = cast(User, usr) # tell type checking usr is a User class
     
     # fully authenticated
-    client.sendall(encode("VALID"))
+    client.sendall(encode(True))
+    log_event(usr.id, "login", f"User {usr.name} logged in from {addr[0]}:{addr[1]}") # log to audit log
     
     # normal server-client back and forth
     while True:
@@ -93,7 +84,11 @@ def handle_usr(client: socket.socket, addr, thread_id: int) -> None:
             print(f"[THREAD {thread_id}] Connection terminated")
             client.close() # close connection
             return
-                        
+        if not data:
+            print(f"[THREAD {thread_id}] No data received, closing connection")
+            client.close()
+            return
+
         data = decode(data) # decode data
         print(f"[THREAD {thread_id}] Data received: {data}")
 
@@ -128,9 +123,9 @@ def main():
         while True: # for each connection
             conn, addr = server.accept() # accept it
             print(f"Connection from {addr}\n")
-            thread = Thread(target=handle_usr, args=(conn, addr, active_count() - 1)) # init thread
+            thread = Thread(target=handle_usr, args=(conn, addr, active_count() - 1)) # init thread with zero-indexed thread id
             thread.start() # start thread
-            print(f"Active connections: {active_count() - 1}")
+            print(f"Active connections: {active_count()}")
 
 if __name__ == "__main__":
     main()
