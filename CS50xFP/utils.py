@@ -17,8 +17,18 @@ except OSError:
 if SIZE < 120:
   raise Exception(f"Requires terminal size of 120 columns (current size {SIZE})")
 
+''' SQL stuff '''
 # Deepwell database connection
 db = SQL("sqlite:///SCiPNETdeepwell.db")
+
+# Get the next id in a table
+def get_next_id(table: str):
+    row = db.execute("SELECT MAX(id) + 1 as next_id FROM ?", table)
+    return row[0]["next_id"]
+
+# Log events in the audit log (eg. account creation, login, file access, file edit, ect.)
+def log_event(user_id: int, action: str, details: str = "") -> None:
+    db.execute("INSERT INTO audit_log (id, user_id, action, details) VALUES (?, ?, ?, ?)", get_next_id("audit_log"), user_id, action, details)
 
 @dataclass(slots=True)
 class User:
@@ -50,14 +60,16 @@ def init_usr(info: dict[str, str | int | None]) -> User:
     info["phrase"] if info["phrase"] is not None else None # type: ignore
     )
 
+
 def clear() -> None:
-  '''
-  Clears the screen
-  '''
-  if name == "nt":
-    system("cls")
-  else:
-    system("clear")
+    '''
+    Clear the screen'''
+    # OS is windows
+    if name == 'nt':
+        system("cls")
+    # OS is mac or linux (or any other I guess, it's an else statement...)
+    else:
+        system("clear")
 
 # print(f"{'':^{SIZE}}")
 def printc(string: str) -> None:
