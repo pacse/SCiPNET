@@ -6,14 +6,7 @@ import json
 import socket
 from threading import active_count, Thread
 from typing import Any
-from utils import db, init_usr, User
-
-
-
-# Information for server connection
-HOST = "127.0.0.1" # localhost
-PORT = 65432
-ADDR = (HOST, PORT) # combine into a tuple
+from utils import ADDR, db, init_usr, User
 
 
 def encode(data: Any) -> Any:
@@ -62,11 +55,11 @@ def get_auth(c: socket.socket, limit: int = 3) -> tuple[bool, int, str]:
         data = c.recv(1024) # receive auth
         if data: # no more loop if we received auth
             data = decode(data) # decode data
-            return False, int(data[0]), data[1] # False, id, pw
+            return False, int(data[1]), data[2] # False, id, pw
     else: # request limit exceeded
         return True, 0, "" # True without id/pw
 
-def handle_usr(client, addr):
+def handle_usr(client: socket.socket, addr, thread_id: int) -> None:
     '''
     TODO: Implement logic
     1. Request auth
@@ -80,27 +73,29 @@ def handle_usr(client, addr):
     '''
     exceeded, id, pw = get_auth(client)
     if exceeded:
-        # TODO: Send client angry message and connection
+        print(f"[THREAD {thread_id}] Authentication limit exceeded for client {addr}")
         client.sendall(encode("INVALID"))
         return
     
     valid, usr = auth_usr(id, pw) # if valid, usr is a User class
     if not valid:
         client.sendall(encode("INVALID"))
+        return
     
     # fully authenticated
     client.sendall(encode("VALID"))
     
     # normal server-client back and forth
     while True:
-        data = client.recv(1024) # receive data
-        # check for no data
-        if not data:
-            print("Connection terminated")
-            break
+        try:
+            data = client.recv(1024) # receive data
+        except ConnectionAbortedError: # return if connection is terminated
+            print(f"[THREAD {thread_id}] Connection terminated")
+            client.close() # close connection
+            return
                         
         data = decode(data) # decode data
-        print(f"Data received: {data}")
+        print(f"[THREAD {thread_id}] Data received: {data}")
 
         ''' 
         TODO: what did the user want to do:
@@ -114,6 +109,7 @@ def handle_usr(client, addr):
                     * Accesses site directory, shows all staff, SCPs, MTFs, Director, site mission, other .txt's
                 * MTF id/name
                     * Generally not classified, but missions would be classified to scp clearance
+            * CREATE action
         '''
         
 
@@ -125,14 +121,14 @@ def main():
     upon receiving a connection:
         start thread with handle_usr
     '''
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s: # set up a listening socket
-        s.bind(ADDR)
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server: # set up a listening socket
+        server.bind(ADDR)
         print("Waiting for a connection . . .")
-        s.listen() # listen for a connection
+        server.listen() # listen for a connection
         while True: # for each connection
-            conn, addr = s.accept() # accept it
-            print(f"Connection from {addr}")
-            thread = Thread(target=handle_usr, args=(conn, addr)) # init thread
+            conn, addr = server.accept() # accept it
+            print(f"Connection from {addr}\n")
+            thread = Thread(target=handle_usr, args=(conn, addr, active_count() - 1)) # init thread
             thread.start() # start thread
             print(f"Active connections: {active_count() - 1}")
 
