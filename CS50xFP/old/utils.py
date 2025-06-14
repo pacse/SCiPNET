@@ -62,6 +62,8 @@ def register_user(authorizer, auth_clearance: int) -> int:
     site = int(input("Assigned site: "))
     if clearance >= 3:
         phrase = input("Override phrase: ")
+    else:
+        phrase = None
 
     # Add new user to sql database
 
@@ -120,6 +122,8 @@ def print_scp(scp):
     if mtf: # SCP has an assigned mtf
         # Combine name and nickname into one string (eg. Epsilon-6 "Village Idiots")
         assigned_mtf = mtf["name"] + '"' + mtf["nickname"] + '"' # From the duck
+    else:
+        assigned_mtf = "None"
 
     print(f"ID: {scp_id}", end=" ")
     print(f"Classified level {classification_level}")
@@ -129,11 +133,8 @@ def print_scp(scp):
     print(f"Disruption Class: {disruption_class}")
     print(f"Risk Class: {risk_class}")
     print(f"Site Responsible: {site_responsible}")
-    if mtf:
-        print(f"Assigned MTF: {assigned_mtf}")
-    else:
-        print("Assigned MTF: None")
-
+    print(f"Assigned MTF: {assigned_mtf}")
+    
     # Get rest of info from text files
     #go to scp directory
     directory = "Deepwell_Server/SCPs/" + scp["id"]
