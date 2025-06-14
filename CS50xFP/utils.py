@@ -4,8 +4,10 @@ from datetime import datetime as dt
 from os import name, system
 from os import get_terminal_size as gts
 
-HOST = "127.0.0.1" # server address
-PORT = 65432     # server port
+# Information for server connection
+HOST = "127.0.0.1" # localhost
+PORT = 65432
+ADDR = (HOST, PORT) # combine into a tuple
 
 try:
   SIZE = gts().columns
