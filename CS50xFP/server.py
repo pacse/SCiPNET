@@ -3,8 +3,10 @@ Server for CS50x Final Project - SCiPNET
 '''
 
 import socket
+from dataclasses import asdict
 from threading import active_count, Thread
 from typing import cast
+from sys import exit
 from utils import ADDR, db, decode, encode, init_usr, log_event, User
 
 
@@ -18,9 +20,12 @@ def auth_usr(id: int, password: str) -> tuple[bool, User | None]:
     # authenticate user
     row = db.execute("SELECT * FROM users WHERE id = ? AND password = ?", id, password)[0] # get the dict from row 0, all ids are unique
     if row: # sucess
-        return True, init_usr(row) # return True and a User dataclass
+        usr = init_usr(row)
+        print(f"Sucess, returning: True, {usr}")
+        return True, usr # return True and a User dataclass
     else: # failure
-    	return False, None # return False and None for User dataclass
+        print("Sucess, returning: False, None")
+        return False, None # return False and None for User dataclass
     
 
 def handle_usr(client: socket.socket, addr, thread_id: int) -> None:
@@ -37,7 +42,9 @@ def handle_usr(client: socket.socket, addr, thread_id: int) -> None:
     '''
     # receive auth from client
     data = client.recv(1024)
-    data = decode(data) # decode data
+    data = decode(data).split() # decode data
+
+    print(f"Data: {data}")
 
     # ensure it was an auth request
     if not data or data[0] != "AUTH" or len(data) != 3:
@@ -47,14 +54,15 @@ def handle_usr(client: socket.socket, addr, thread_id: int) -> None:
     
     valid, usr = auth_usr(data[1], data[2]) # if valid, usr is a User class
     if not valid:
-        client.sendall(encode((False, usr)))
+        client.sendall(encode((False, None)))
         log_event(data[1], "login", f"Failed login attempt from {addr[0]}:{addr[1]} with id {data[1]!r} and password {data[2]!r}") # log to audit log
         return
     else:
         usr = cast(User, usr) # tell type checking usr is a User class
     
     # fully authenticated
-    client.sendall(encode(True))
+    print(f"[HANDLE USER] sending: (True, {asdict(usr)})")
+    client.sendall(encode((True, asdict(usr))))
     log_event(usr.id, "login", f"User {usr.name} logged in from {addr[0]}:{addr[1]}") # log to audit log
     
     # normal server-client back and forth
@@ -102,11 +110,15 @@ def main():
         print("Waiting for a connection . . .")
         server.listen() # listen for a connection
         while True: # for each connection
-            conn, addr = server.accept() # accept it
-            print(f"Connection from {addr}\n")
-            thread = Thread(target=handle_usr, args=(conn, addr, active_count() - 1)) # init thread with zero-indexed thread id
-            thread.start() # start thread
-            print(f"Active connections: {active_count()}")
+            try:
+                conn, addr = server.accept() # accept it
+                print(f"Connection from {addr}\n")
+                thread = Thread(target=handle_usr, args=(conn, addr, active_count() - 1)) # init thread with zero-indexed thread id
+                thread.start() # start thread
+                print(f"Active connections: {active_count() - 1}")
+            except KeyboardInterrupt:
+                print("Exiting")
+                exit()
 
 if __name__ == "__main__":
     main()
