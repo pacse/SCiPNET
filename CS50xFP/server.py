@@ -13,7 +13,7 @@ from utils import ADDR, db, decode, encode, init_usr, log_event, User
 def auth_usr(id: int, password: str) -> tuple[bool, User | None]:
     # TODO: Validate
     '''
-    authenticates a user by querying the deepwell
+    Authenticates a user by querying the deepwell
     '''
     print(f"Authenticating user {id!r} with password: {password!r}")
 
@@ -30,15 +30,8 @@ def auth_usr(id: int, password: str) -> tuple[bool, User | None]:
 
 def handle_usr(client: socket.socket, addr, thread_id: int) -> None:
     '''
-    TODO: Implement logic
-    1. receive auth ✅
-    2. validate auth ✅
-    if not valid:
-    	log to "overwatch command" ✅
-        kick client ✅
-    while True:
-    	get data request (file access, edit, ect)
-        handle request
+    Function for threads after a user connects to the server
+    TODO: handle request
     '''
     # receive auth from client
     data = client.recv(1024)
@@ -100,10 +93,7 @@ def handle_usr(client: socket.socket, addr, thread_id: int) -> None:
 def main():
     # TODO: Validate
     '''
-    handles the logic for the main thread:
-    set up listening socket
-    upon receiving a connection:
-        start thread with handle_usr
+    handles the logic for the main thread
     '''
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server: # set up a listening socket
         server.bind(ADDR)
