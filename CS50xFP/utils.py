@@ -11,6 +11,7 @@ HOST = "127.0.0.1" # localhost
 PORT = 65432
 ADDR = (HOST, PORT) # combine into a tuple
 
+''' Validate terminal size '''
 try:
   SIZE = gts().columns
 except OSError:
@@ -32,11 +33,14 @@ def get_next_id(table: str):
 def log_event(user_id: int, action: str, details: str = "") -> None:
     db.execute("INSERT INTO audit_log (id, user_id, action, details) VALUES (?, ?, ?, ?)", get_next_id("audit_log"), user_id, action, details)
 
+
+''' Dataclass to store usr info '''
+
 @dataclass(slots=True)
 class User:
   '''
-  A dataclass to store important information after
-  getting a user's data from the deepwell database
+  A dataclass to store information after
+  getting a user's data from the deepwell
   '''
   id: int
   name: str
@@ -81,7 +85,8 @@ def decode(data: Any) -> Any:
 
 def clear() -> None:
     '''
-    Clear the screen'''
+    Clear the screen
+    '''
     # OS is windows
     if name == 'nt':
         system("cls")
