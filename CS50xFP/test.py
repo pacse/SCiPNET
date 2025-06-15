@@ -1,9 +1,5 @@
-from cs50 import SQL
+from utils import clear
 
-# init sqlite database
-db = SQL("sqlite:///SCiPNETdeepwell.db")
-
-rows = db.execute("SELECT * FROM audit_log")
-
-for row in rows:
-    print(row)
+#print("Testing clear function...")
+clear()
+print("Clear function works correctly. The screen should be cleared above this line.")
