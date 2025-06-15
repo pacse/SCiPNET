@@ -91,14 +91,14 @@ def login(name, password):
     return True, user["id"]
 
 # Verify a provided override phrase is greater than provided clearance
-def verify_override_phrase(phrase, clearance):
+def verify_override_phrase(phrase, clearance) -> tuple[bool, int]:
     rows = db.execute("SELECT id, clearance_level_id FROM users WHERE phrase = ? AND clearance_level_id > ?", phrase, clearance)
 
     if rows:
-        return True, rows[0]["id"], rows[0]["clearance_level_id"]
+        return True, int(rows[0]["id"])
 
     else:
-        return False, "", ""
+        return False, -1
 
 # Load a user's credentials
 def load_credentials(user_id):
