@@ -2,29 +2,10 @@
 Server for CS50x Final Project - SCiPNET
 '''
 
-import json
 import socket
 from threading import active_count, Thread
-from typing import Any, cast
-from utils import ADDR, db, init_usr, log_event, User
-
-
-def encode(data: Any) -> Any:
-    # TODO: Validate
-    '''
-    Encodes data into json and converty it to bytes
-    so it can be sent over a socket connection
-    '''
-    return json.dumps(data).encode()
-
-
-def decode(data: Any) -> Any:
-    # TODO: Validate
-    '''
-    decodes data received from a socket connection
-    converts from bytes and json to list/str/int/ect
-    '''
-    return json.loads(data.decode()).split()
+from typing import cast
+from utils import ADDR, db, decode, encode, init_usr, log_event, User
 
 
 def auth_usr(id: int, password: str) -> tuple[bool, User | None]:
@@ -66,7 +47,7 @@ def handle_usr(client: socket.socket, addr, thread_id: int) -> None:
     
     valid, usr = auth_usr(data[1], data[2]) # if valid, usr is a User class
     if not valid:
-        client.sendall(encode(False))
+        client.sendall(encode((False, usr)))
         log_event(data[1], "login", f"Failed login attempt from {addr[0]}:{addr[1]} with id {data[1]!r} and password {data[2]!r}") # log to audit log
         return
     else:
