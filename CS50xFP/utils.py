@@ -1,6 +1,8 @@
+import json
 from cs50 import SQL # type: ignore
 from dataclasses import dataclass
 from datetime import datetime as dt
+from typing import Any
 from os import name, system
 from os import get_terminal_size as gts
 
@@ -60,6 +62,22 @@ def init_usr(info: dict[str, str | int | None]) -> User:
     info["phrase"] if info["phrase"] is not None else None # type: ignore
     )
 
+def encode(data: Any) -> Any:
+    # TODO: Validate
+    '''
+    Encodes data into json and converty it to bytes
+    so it can be sent over a socket connection
+    '''
+    return json.dumps(data).encode()
+
+
+def decode(data: Any) -> Any:
+    # TODO: Validate
+    '''
+    Decodes data from bytes to json
+    so it can be processed by the server
+    '''
+    return json.loads(data.decode())
 
 def clear() -> None:
     '''
