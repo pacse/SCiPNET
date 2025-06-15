@@ -41,9 +41,9 @@ class User:
   id: int
   name: str
   password: str
-  clearance_level: int
-  title: str
-  site: int
+  clearance_level_id: int
+  title_id: str
+  site_id: int
   phrase: str | None = None # not required for lower level personnel
 
 def init_usr(info: dict[str, str | int | None]) -> User:
