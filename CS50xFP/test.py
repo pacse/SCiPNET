@@ -1,5 +1,3 @@
-from utils import clear
+from utils import db
 
-#print("Testing clear function...")
-clear()
-print("Clear function works correctly. The screen should be cleared above this line.")
+print(db.execute("Select * from users"))
