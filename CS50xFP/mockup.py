@@ -1,77 +1,5 @@
 # Login
-import socket
-import sys
-from time import sleep as sp
-from time import time as tm
-from random import uniform as uf
-from utils import clear, printc, timestamp
-
-# redacted message
-def redacted(file: str) -> None:
-  '''
-  prints a message saying {file} is above your clearance
-  art by ChatGPT
-  '''
-  lines = [
-      "╔══════════════════════════════╗",
-      "║        ACCESS DENIED         ║",
-      "╚══════════════════════════════╝",
-      "",
-      f"FILE_REF: {file} ACCESS DENIED",
-      "CLEARANCE LEVEL 6 - COSMIC TOP SECRET REQUIRED",
-      "(YOU ARE CLEARANCE LEVEL 5 - TOP SECRET)",
-      f"Logged to Overwatch Command at {timestamp()}",
-  ]
-
-  [printc(line) for line in lines]
-
-# data expunged message
-def expunged(file: str) -> None:
-  '''
-  prints a message saying {file} has been expunged
-  art by ChatGPT
-  '''
-  lines = [
-      "╔══════════════════════════════╗",
-      "║        DATA EXPUNGED         ║",
-      "╚══════════════════════════════╝",
-      "",
-      f"FILE_REF: {file} NOT FOUND",
-      f"Logged to Overwatch Command at {timestamp()}",
-  ]
-
-  [printc(line) for line in lines]
-
-# access granted message
-def granted(file: str) -> None:
-  '''
-  prints a message saying access has been granted to a file
-  art by ChatGPT
-  '''
-  lines = [
-      "╔══════════════════════════════╗",
-      "║        ACCESS GRANTED        ║",
-      "╚══════════════════════════════╝",
-      "",
-      f"FILE_REF: {file} ACCESS GRANTED",
-      f"Logged to Overwatch Command at {timestamp()}",
-  ]
-
-  [printc(line) for line in lines]
-
-def auth_usr(id: int, password: str) -> bool:
-  # TODO: Implement authentication logic
-  return True
-
-def invalid() -> None:
-  printc("INVALID ID OR PASSWORD")
-  sys.exit()
-
-def conn_deepwell():
-  # TODO: implement deepwell connection
-  # connect to server
-  # get connection to deepwell.db and return
-  pass
+from utils import printc
 
 def login(name: str, title: str, clearance: int) -> None:
   clearances = {
@@ -165,12 +93,12 @@ if __name__ == "__main__":
   printc(f"Accessing file {file_name}. . .")
   print()
   #sp(uf(0, 1))
-  expunged(file_name)
+  #expunged(file_name)
   print(">>> Override Alpha Omega Gamma 7")
   printc("Overriding. . .")
   print()
   #sp(uf(0, 1))
-  redacted(file_name)
+  #redacted(file_name)
   print(">>> Override Episilon Lambda Chi 4")
   printc("Overriding. . .")
-  granted(file_name)
+  #granted(file_name)

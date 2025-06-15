@@ -6,8 +6,9 @@ import socket
 import sys
 from random import uniform as uf
 from time import sleep as sp
-from utils import ADDR, clear, decode, encode, printc, timestamp, User
+from utils import ADDR, clear, decode, encode, init_usr, printc, timestamp, User
 
+DEBUG = False
 
 # redacted message
 def redacted(file: str) -> None:
@@ -87,12 +88,13 @@ def auth_usr(s: socket.socket, id: int, password: str) -> tuple[bool, User | Non
 
     result = decode(result) # decode it
 
-    if result == False:
-        print("Incorrect id or password")
+    if DEBUG:
+        print(f"Result: {result}")
+
+    if result[0] == False:
         return False, None
     else:
-        print("User Authenticated")
-        return True, result[1]
+        return True, init_usr(result[1])
 
 def startup() -> None:
     '''
@@ -121,7 +123,8 @@ def startup() -> None:
     printc("███▄▄▄▄███▄▄▄▄███▄▄▄▄███▄▄▄▄███▄▄▄▄███▄▄▄▄███▄▄▄▄███▄▄▄▄███▄▄▄▄███▄▄▄▄███▄▄▄▄███▄▄▄▄███▄▄▄▄███▄▄▄▄███▄▄▄▄███▄▄▄▄███▄")
     print()
 
-    sp(uf(0, 1)) # simulate loading time
+    # simulate loading (bc it's cool)
+    sp(uf(0, 1))
     printc("> Establishing encrypted tunnel to Deepwell Servers . . .")
     sp(uf(0, 1))
     printc("> Syncing with Overwatch Command . . .")
@@ -131,7 +134,7 @@ def startup() -> None:
     printc("> SCiPNET interface launch sequence initiated . . .")
     sp(uf(0, 1))
     printc("SCP Foundation CoreNode Connection: STABLE")
-    sp(uf(0, 1))
+    sp(uf(0, 0.5))
     printc("[The Foundation database is CLASSIFIED]")
     printc("[Unauthorized access will result in detainment]")
     print()
@@ -139,9 +142,12 @@ def startup() -> None:
 if __name__ == "__main__":
     with conn_to_server(ADDR) as conn:
         startup()  # print startup screen
-        id = int(input("ID: "))
-        password = input("Password: ")
+        id = 1 #int(input("ID: "))
+        password = "DivIIne" #input("Password: ")
 
         valid, usr = auth_usr(conn, id, password)
         if not valid:
             sys.exit("Authentication failed")
+
+        print("User Authenticated . . .")
+        print(usr)
