@@ -58,64 +58,46 @@ if __name__ == "__main__":
                 if split_request[1] == "SCP": # scp file
                     scp = {}
                     printc("CREATE SCP")
-                    scp["id"] = input(f"ID (next: {get_next_id('scps')}): ")
+                    conn.sendall(encode("CREATE SCP"))  # send create request to server
+                    response = conn.recv(1024)
 
+                    if not response: # sanity check
+                        printc("[ERROR]: NO RESPONSE FROM SERVER")
+                        continue
+
+                    response = decode(response)  # decode server response
+
+                    scp["id"] = input(f"ID (next: {get_next_id('scps')}): ")
+                    
                     printc("Clearance Levels:")
-                    printc("Level 1 - Unrestricted")
-                    printc("Level 2 - Restricted")
-                    printc("Level 3 - Confidential")
-                    printc("Level 4 - Secret")
-                    printc("Level 5 - Top Secret")
-                    printc("Level 6 - Cosmic Top Secret")
-                    scp["classification_level_id"] = int(input("Clearance Level:"))
+                    for c_level in response["clearance_levels"]:
+                        print(f"{c_level['name']}")
+
+                    scp["classification_level_id"] = int(input("Clearance Level: "))
 
                     printc("Containment Classes:")
-                    printc("1 - Safe")
-                    printc("2 - Euclid")
-                    printc("3 - Keter")
-                    printc("4 - Neutralized")
-                    printc("5 - Explained")
-                    printc("6 - Decommissioned")
-                    printc("7 - Pending")
-                    printc("8 - Uncontained")
-                    scp["containment_class_id"] = int(input("Clearance Level:"))
+                    for c_class in response["containment_classes"]:
+                        print(f"{c_class['name']}")
 
-                    '''
-                    sqlite> select id, name from containment_class;
-                    +----+----------------+
-                    | id |      name      |
-                    +----+----------------+
-                    | 1  | Safe           |
-                    | 2  | Euclid         |
-                    | 3  | Keter          |
-                    | 4  | Neutralized    |
-                    | 5  | Explained      |
-                    | 6  | Decommissioned |
-                    | 7  | Pending        |
-                    | 8  | Uncontained    |
-                    +----+----------------+
-                    sqlite> select id, name from disruption_class;
-                    +----+-------+
-                    | id | name  |
-                    +----+-------+
-                    | 1  | Dark  |
-                    | 2  | Vlam  |
-                    | 3  | Keneq |
-                    | 4  | Ekhi  |
-                    | 5  | Amida |
-                    +----+-------+
-                    sqlite> select id, name from risk_class;
-                    +----+----------+
-                    | id |   name   |
-                    +----+----------+
-                    | 1  | Notice   |
-                    | 2  | Caution  |
-                    | 3  | Warning  |
-                    | 4  | Danger   |
-                    | 5  | Critical |
-                    +----+----------+
-                    sqlite> 
-                    '''
+                    scp["containment_class_id"] = int(input("Containment Class: "))
 
+                    printc("Disruption Classes:")
+                    for d_class in response["disruption_classes"]:
+                        print(f"{d_class['name']}")
+
+                    scp["disruption_class_id"] = int(input("Disruption Class: "))
+
+                    printc("Risk Classes:")
+                    for r_class in response["risk_classes"]:
+                        print(f"{r_class['name']}")
+
+                    scp["risk_class_id"] = int(input("Risk Class: "))
+
+                    scp["site_responsible_id"] = int(input("Site Responsible: "))
+
+                    scp["assigned_task_force_id"] = input("Assigned Task Force: ")
+
+                    conn.sendall(encode(scp)) # send scp data to server
+                    response = conn.recv(1024)
             else:
                 print("INVALID REQUEST")
