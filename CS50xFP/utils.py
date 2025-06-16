@@ -13,12 +13,12 @@ ADDR = (HOST, PORT) # combine into a tuple
 
 ''' Validate terminal size '''
 try:
-  SIZE = gts().columns
+    SIZE = gts().columns
 except OSError:
-  SIZE = 120 # type: ignore
+    SIZE = 120 # type: ignore
 
 if SIZE < 120:
-  raise Exception(f"Requires terminal size of 120 columns (current size {SIZE})")
+    raise Exception(f"Requires terminal size of 120 columns (current size {SIZE})")
 
 ''' SQL stuff '''
 # Deepwell database connection
@@ -29,6 +29,12 @@ def get_next_id(table: str):
     row = db.execute("SELECT MAX(id) + 1 as next_id FROM ?", table)
     return row[0]["next_id"]
 
+
+def get_name(table: str, id: int) -> str:
+    row = db.execute("SELECT name FROM ? WHERE id = ?", table, id)
+    return row[0]["name"]
+
+
 # Log events in the audit log (eg. account creation, login, file access, file edit, ect.)
 def log_event(user_id: int, action: str, details: str = "") -> None:
     db.execute("INSERT INTO audit_log (id, user_id, action, details) VALUES (?, ?, ?, ?)", get_next_id("audit_log"), user_id, action, details)
@@ -38,33 +44,33 @@ def log_event(user_id: int, action: str, details: str = "") -> None:
 
 @dataclass(slots=True)
 class User:
-  '''
-  A dataclass to store information after
-  getting a user's data from the deepwell
-  '''
-  id: int
-  name: str
-  password: str
-  clearance_level_id: int
-  title_id: str
-  site_id: int
-  phrase: str | None = None # not required for lower level personnel
+    '''
+    A dataclass to store information after
+    getting a user's data from the deepwell
+    '''
+    id: int
+    name: str
+    password: str
+    clearance_level_id: int
+    title_id: int
+    site_id: int
+    phrase: str | None = None # not required for lower level personnel
 
 def init_usr(info: dict[str, str | int | None]) -> User:
-  '''
-  Stores user data from a deepwell
-  request in a user dataclass
-  '''
+    '''
+    Stores user data from a deepwell
+    request in a user dataclass
+    '''
 
-  return User(
-    int(info["id"]), # type: ignore
-    str(info["name"]), # type: ignore
-    str(info["password"]), # type: ignore
-    int(info["clearance_level_id"]), # type: ignore
-    str(info["title_id"]), # type: ignore
-    int(info["site_id"]), # type: ignore
-    info["phrase"] if info["phrase"] is not None else None # type: ignore
-    )
+    return User(
+        int(info["id"]), # type: ignore
+        str(info["name"]), # type: ignore
+        str(info["password"]), # type: ignore
+        int(info["clearance_level_id"]), # type: ignore
+        str(info["title_id"]), # type: ignore
+        int(info["site_id"]), # type: ignore
+        info["phrase"] if info["phrase"] is not None else None # type: ignore
+      )
 
 def encode(data: Any) -> Any:
     # TODO: Validate
@@ -107,3 +113,15 @@ def timestamp() -> str:
   format: Day/Month/Year - Hour/min/second
   '''
   return dt.now().strftime("%d/%m/%Y - %H:%M:%S")
+
+
+def handle_reply(reply: str):
+    '''
+    Handles a server response client side
+    '''
+    pass
+
+def handle_request(request: str):
+    '''
+    
+    '''

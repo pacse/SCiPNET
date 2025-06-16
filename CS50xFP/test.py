@@ -1,3 +1,3 @@
 from utils import db
 
-print(db.execute("Select * from users"))
+print(db.execute("PRAGMA table_info(scps)"))

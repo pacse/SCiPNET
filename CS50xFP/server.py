@@ -71,7 +71,7 @@ def handle_usr(client: socket.socket, addr, thread_id: int) -> None:
             client.close()
             return
 
-        data = decode(data) # decode data
+        data = decode(data).split() # decode data
         print(f"[THREAD {thread_id}] Data received: {data}")
 
         ''' 
@@ -88,7 +88,10 @@ def handle_usr(client: socket.socket, addr, thread_id: int) -> None:
                     * Generally not classified, but missions would be classified to scp clearance
             * CREATE action
         '''
-        
+
+        if data[0] == "CREATE":  # usr wants to create a file
+            if data[1] == "SCP": # scp file
+                
 
 def main():
     # TODO: Validate
