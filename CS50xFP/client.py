@@ -4,7 +4,7 @@ Client
 import art
 import socket
 import sys
-from utils import ADDR, decode, encode, init_usr, handle_reply, printc
+from utils import ADDR, decode, encode, get_next_id, init_usr, handle_reply, printc
 
 DEBUG = False
 
@@ -52,6 +52,70 @@ if __name__ == "__main__":
         # main loop
         while True:
             request = input(">>> ") # get usr input
+            split_request = request.split()
 
-            conn.sendall(encode(request)) # send server request
-            handle_reply(conn.recv(1024)) # handle reply
+            if split_request[0] == "CREATE":  # usr wants to create a file
+                if split_request[1] == "SCP": # scp file
+                    scp = {}
+                    printc("CREATE SCP")
+                    scp["id"] = input(f"ID (next: {get_next_id('scps')}): ")
+
+                    printc("Clearance Levels:")
+                    printc("Level 1 - Unrestricted")
+                    printc("Level 2 - Restricted")
+                    printc("Level 3 - Confidential")
+                    printc("Level 4 - Secret")
+                    printc("Level 5 - Top Secret")
+                    printc("Level 6 - Cosmic Top Secret")
+                    scp["classification_level_id"] = int(input("Clearance Level:"))
+
+                    printc("Containment Classes:")
+                    printc("1 - Safe")
+                    printc("2 - Euclid")
+                    printc("3 - Keter")
+                    printc("4 - Neutralized")
+                    printc("5 - Explained")
+                    printc("6 - Decommissioned")
+                    printc("7 - Pending")
+                    printc("8 - Uncontained")
+                    scp["containment_class_id"] = int(input("Clearance Level:"))
+
+                    '''
+                    sqlite> select id, name from containment_class;
+                    +----+----------------+
+                    | id |      name      |
+                    +----+----------------+
+                    | 1  | Safe           |
+                    | 2  | Euclid         |
+                    | 3  | Keter          |
+                    | 4  | Neutralized    |
+                    | 5  | Explained      |
+                    | 6  | Decommissioned |
+                    | 7  | Pending        |
+                    | 8  | Uncontained    |
+                    +----+----------------+
+                    sqlite> select id, name from disruption_class;
+                    +----+-------+
+                    | id | name  |
+                    +----+-------+
+                    | 1  | Dark  |
+                    | 2  | Vlam  |
+                    | 3  | Keneq |
+                    | 4  | Ekhi  |
+                    | 5  | Amida |
+                    +----+-------+
+                    sqlite> select id, name from risk_class;
+                    +----+----------+
+                    | id |   name   |
+                    +----+----------+
+                    | 1  | Notice   |
+                    | 2  | Caution  |
+                    | 3  | Warning  |
+                    | 4  | Danger   |
+                    | 5  | Critical |
+                    +----+----------+
+                    sqlite> 
+                    '''
+
+            else:
+                print("INVALID REQUEST")
