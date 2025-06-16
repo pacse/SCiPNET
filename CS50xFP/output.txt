@@ -1,8 +1,0 @@
-printc("1 - Safe")
-printc("2 - Euclid")
-printc("3 - Keter")
-printc("4 - Neutralized")
-printc("5 - Explained")
-printc("6 - Decommissioned")
-printc("7 - Pending")
-printc("8 - Uncontained")
