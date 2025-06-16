@@ -7,7 +7,7 @@ from dataclasses import asdict
 from threading import active_count, Thread
 from typing import cast
 from sys import exit
-from utils import ADDR, db, decode, encode, init_usr, log_event, printc, User
+from utils import ADDR, db, decode, encode, get_next_id, init_usr, log_event, printc, User
 
 
 def auth_usr(id: int, password: str) -> tuple[bool, User | None]:
@@ -91,13 +91,16 @@ def handle_usr(client: socket.socket, addr, thread_id: int) -> None:
 
         if data[0] == "CREATE":  # usr wants to create a file
             if data[1] == "SCP": # scp file
-            	# get column names
-            	columns = db.execute("SELECT * FROM scps WHERE id = -1")[0].keys() # row -1 is blank, get all keys
-            	scp = {}
-            	printc("CREATE SCP")
-				for column in columns:
-                    scp[column] = input(f"{column}: ")
-                db.execute("INSERT INTO scps VALUES (?, ?, ?, )", scp[id], scp[])
+                scp = {}
+                printc("CREATE SCP")
+                id = input(f"ID (next: {get_next_id('scps')}): ")
+
+                print("Clearance Levels:")
+                c_levels = db.execute("SELECT name FROM clearance_levels")
+                for c_level in c_levels:
+                    print(c_level)
+
+                db.execute("INSERT INTO scps VALUES (?, ?, ?, )")
 
 def main():
     # TODO: Validate
