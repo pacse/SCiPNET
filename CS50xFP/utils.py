@@ -25,7 +25,11 @@ if SIZE < 120:
 db = SQL("sqlite:///SCiPNETdeepwell.db")
 
 # Get the next id in a table
-def get_next_id(table: str):
+def get_next_id(table: str) -> int:
+    '''
+    Get the next id in a table:
+    MAX(id) + 1
+    '''
     row = db.execute("SELECT MAX(id) + 1 as next_id FROM ?", table)
     return row[0]["next_id"]
 
@@ -33,6 +37,10 @@ def get_next_id(table: str):
 def get_name(table: str, id: int) -> str:
     row = db.execute("SELECT name FROM ? WHERE id = ?", table, id)
     return row[0]["name"]
+
+def get_id(table: str, name: str) -> int:
+    row = db.execute("SELECT id FROM ? WHERE name = ?", table, name)
+    return row[0]["id"]
 
 
 # Log events in the audit log (eg. account creation, login, file access, file edit, ect.)
