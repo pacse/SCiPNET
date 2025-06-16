@@ -91,16 +91,13 @@ def handle_usr(client: socket.socket, addr, thread_id: int) -> None:
 
         if data[0] == "CREATE":  # usr wants to create a file
             if data[1] == "SCP": # scp file
-                scp = {}
-                printc("CREATE SCP")
-                id = input(f"ID (next: {get_next_id('scps')}): ")
+                response = {}
+                response["clearance_levels"] = db.execute("SELECT id, name FROM clearance_levels")
+                response["containment_classes"] = db.execute("SELECT id, name FROM containment_class")
+                response["disruption_classes"] = db.execute("SELECT id, name FROM disruption_class")
+                response["risk_classes"] = db.execute("SELECT id, name FROM risk_class")
 
-                print("Clearance Levels:")
-                c_levels = db.execute("SELECT name FROM clearance_levels")
-                for c_level in c_levels:
-                    print(c_level)
-
-                db.execute("INSERT INTO scps VALUES (?, ?, ?, )")
+                client.sendall(encode(response))
 
 def main():
     # TODO: Validate
