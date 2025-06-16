@@ -67,7 +67,7 @@ if __name__ == "__main__":
 
                     response = decode(response)  # decode server response
 
-                    scp["id"] = input(f"ID (next: {get_next_id('scps')}): ")
+                    scp["id"] = input(f"ID (next: {response['id']}): ")
                     
                     printc("Clearance Levels:")
                     for c_level in response["clearance_levels"]:
@@ -96,6 +96,10 @@ if __name__ == "__main__":
                     scp["site_responsible_id"] = int(input("Site Responsible: "))
 
                     scp["assigned_task_force_id"] = input("Assigned Task Force: ")
+
+                    scp["special_containment_procedures"] = input("Special Containment Procedures: ")
+
+                    scp["description"] = input("Description: ")
 
                     conn.sendall(encode(scp)) # send scp data to server
                     response = conn.recv(1024)

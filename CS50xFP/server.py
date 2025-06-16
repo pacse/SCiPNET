@@ -7,7 +7,7 @@ from dataclasses import asdict
 from threading import active_count, Thread
 from typing import cast
 from sys import exit
-from utils import ADDR, db, decode, encode, get_next_id, init_usr, log_event, printc, User
+from utils import ADDR, db, decode, encode, get_next_id, get_id, init_usr, log_event, printc, User
 
 
 def auth_usr(id: int, password: str) -> tuple[bool, User | None]:
@@ -92,13 +92,30 @@ def handle_usr(client: socket.socket, addr, thread_id: int) -> None:
         if data[0] == "CREATE":  # usr wants to create a file
             if data[1] == "SCP": # scp file
                 response = {}
+                response["id"] = get_next_id('scps')
                 response["clearance_levels"] = db.execute("SELECT id, name FROM clearance_levels")
                 response["containment_classes"] = db.execute("SELECT id, name FROM containment_class")
                 response["disruption_classes"] = db.execute("SELECT id, name FROM disruption_class")
                 response["risk_classes"] = db.execute("SELECT id, name FROM risk_class")
 
-                client.sendall(encode(response))
-
+                client.sendall(encode(response)) # send client info for creating an SCP file
+                scp = client.recv(1024)  # wait for client to send SCP data
+                if not scp:
+                    print(f"[THREAD {thread_id}] No data received, closing connection")
+                    client.close()
+                    return
+                scp = decode(scp)
+                print(f"[THREAD {thread_id}] SCP data received: {scp}")
+                scp["assigned_task_force_id"] = get_id("task_forces", scp["assigned_task_force_id"]) if scp["assigned_task_force_id"] else None
+                db.execute("""
+                    INSERT INTO scps (id, classification_level_id, containment_class_id, secondary_class, disruption_class_id, risk_class_id, site_responsible_id)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, scp["id"], scp["classification_level_id"], scp["containment_class_id"], 0,  # secondary_class is not used yet
+                    scp["disruption_class_id"], scp["risk_class_id"], scp["site_responsible_id"])
+                
+                with open(f"scp_{scp['id']}.txt", "w") as f:  # create scp file
+                    f.write(f"Special Containment Procedures:\n{scp['special_containment_procedures']}\n")
+                    f.write(f"Description:\n{scp['description']}\n")
 def main():
     # TODO: Validate
     '''
