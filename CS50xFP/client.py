@@ -77,25 +77,25 @@ if __name__ == "__main__":
 
                     printc("Containment Classes:")
                     for c_class in response["containment_classes"]:
-                        print(f"{c_class['name']}")
+                        print(f"{c_class['id']} - {c_class['name']}")
 
                     scp["containment_class_id"] = int(input("Containment Class: "))
 
                     printc("Disruption Classes:")
                     for d_class in response["disruption_classes"]:
-                        print(f"{d_class['name']}")
+                        print(f"{d_class['id']} - {d_class['name']}")
 
                     scp["disruption_class_id"] = int(input("Disruption Class: "))
 
                     printc("Risk Classes:")
                     for r_class in response["risk_classes"]:
-                        print(f"{r_class['name']}")
+                        print(f"{r_class['id']} - {r_class['name']}")
 
                     scp["risk_class_id"] = int(input("Risk Class: "))
 
                     scp["site_responsible_id"] = int(input("Site Responsible: "))
 
-                    scp["assigned_task_force_id"] = input("Assigned Task Force: ")
+                    scp["assigned_task_force_id"] = input("Assigned Task Force (id): ")
 
                     scp["special_containment_procedures"] = input("Special Containment Procedures: ")
 

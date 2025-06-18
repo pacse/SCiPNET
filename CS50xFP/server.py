@@ -106,12 +106,12 @@ def handle_usr(client: socket.socket, addr, thread_id: int) -> None:
                     return
                 scp = decode(scp)
                 print(f"[THREAD {thread_id}] SCP data received: {scp}")
-                scp["assigned_task_force_id"] = get_id("task_forces", scp["assigned_task_force_id"]) if scp["assigned_task_force_id"] else None
+                scp["assigned_task_force_id"] = get_id("mtfs", scp["assigned_task_force_id"]) if scp["assigned_task_force_id"] else None
                 db.execute("""
-                    INSERT INTO scps (id, classification_level_id, containment_class_id, secondary_class, disruption_class_id, risk_class_id, site_responsible_id)
+                    INSERT INTO scps (id, classification_level_id, containment_class_id, secondary_class_id, disruption_class_id, risk_class_id, site_responsible_id, assigned_task_force_id)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
-                """, scp["id"], scp["classification_level_id"], scp["containment_class_id"], 0,  # secondary_class is not used yet
-                    scp["disruption_class_id"], scp["risk_class_id"], scp["site_responsible_id"])
+                """, scp["id"], scp["classification_level_id"], scp["containment_class_id"], 0,  # secondary_class is not implemented yet
+                    scp["disruption_class_id"], scp["risk_class_id"], scp["site_responsible_id"], scp["assigned_task_force_id"])
                 
                 with open(f"scp_{scp['id']}.txt", "w") as f:  # create scp file
                     f.write(f"Special Containment Procedures:\n{scp['special_containment_procedures']}\n")
