@@ -1,5 +1,5 @@
 CREATE TABLE users (
-    id INTEGER PRIMARY KEY NOT NULL,
+    id INTEGER AUTOINCREMENT PRIMARY KEY NOT NULL,
     name TEXT NOT NULL,
     password TEXT NOT NULL, -- add later: store securely (hashing + salting)
     clearance_level_id INTEGER NOT NULL,
@@ -17,15 +17,15 @@ INSERT INTO users (id, name, password, clearance_level_id, title_id, site_id, ph
 VALUES ((SELECT MAX(id) + 1 FROM users), "", "", 0, 0, , "", "");
 
 CREATE TABLE scps (
-    id INTEGER PRIMARY KEY NOT NULL,
+    id INTEGER AUTOINCREMENT PRIMARY KEY NOT NULL,
     classification_level_id INTEGER NOT NULL,
     containment_class_id INTEGER NOT NULL,
-    secondary_class_id INTEGER NOT NULL,
-    disruption_class_id INTEGER NOT NULL,
-    risk_class_id INTEGER NOT NULL,
+    secondary_class_id INTEGER,
+    disruption_class_id INTEGER,
+    risk_class_id INTEGER,
     site_responsible_id INTEGER NOT NULL, -- should it be not null?
     assigned_task_force_id INTEGER, -- safe one's prolly don't need a task force
-    archived BOOLEAN DEFAULT FALSE, -- weather or not the file's been archived (neutralized, explained, ect)
+    archived BOOLEAN DEFAULT FALSE NOT NULL, -- weather or not the file's been archived (neutralized, explained, ect)
 
     FOREIGN KEY(classification_level_id) REFERENCES clearance_levels(id),
     FOREIGN KEY(containment_class_id) REFERENCES containment_classes(id),
@@ -37,17 +37,17 @@ CREATE TABLE scps (
     )
 
 CREATE TABLE mtfs (
-    id INTEGER PRIMARY KEY NOT NULL,
+    id INTEGER AUTOINCREMENT PRIMARY KEY NOT NULL,
     name TEXT NOT NULL, -- eg. Epsilon-6
     nickname TEXT NOT NULL, -- eg. "Village Idiots"
-    leader INTEGER NOT NULL,
+    leader INTEGER, -- probably null when ripped from wikidot
     active BOOLEAN DEFAULT TRUE,
 
     FOREIGN KEY(leader) REFERENCES users(id)
     )
 
 CREATE TABLE sites (
-    id INTEGER PRIMARY KEY NOT NULL,
+    id INTEGER AUTOINCREMENT PRIMARY KEY NOT NULL,
     director INTEGER,
     FOREIGN KEY(director) REFERENCES users(id)
     )
@@ -71,7 +71,7 @@ CREATE TABLE site_scps (
 -- admin tables
 
 CREATE TABLE audit_log (
-    id INTEGER,
+    id INTEGER AUTOINCREMENT NOT NULL,
     user_id INTEGER NOT NULL,
     action TEXT NOT NULL, -- what happened (ie. login, file change, ect)
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -81,62 +81,58 @@ CREATE TABLE audit_log (
     )
 
 CREATE TABLE clearance_levels (
-    id INTEGER PRIMARY KEY,
+    id INTEGER AUTOINCREMENT PRIMARY KEY,
     name TEXT NOT NULL, -- ie. Level 3 - Secret, Level 5 - Thaumiel, ect.
-    description TEXT NOT NULL -- not normally accessed
+    -- no description, file ref
     )
 
 INSERT INTO clearance_levels (id, name, description)
 VALUES ((SELECT MAX(id) + 1 FROM clearance_levels), "Level 6 - Cosmic Top Secret", "This document is ONLY available to a member of the O5 Council. All access to this document is granted solely at the discretion of an O5 Council member.");
 
 CREATE TABLE containment_class (
-    id INTEGER PRIMARY KEY,
+    id INTEGER AUTOINCREMENT PRIMARY KEY,
     name TEXT NOT NULL, -- eg. Safe, Euclid, Keter, ect.
-    description TEXT NOT NULL -- not normally accessed
+    -- no description, file ref
     )
 
 INSERT INTO containment_class (id, name, description)
 VALUES ((SELECT MAX(id) + 1 FROM containment_class), "Uncontained", "SCPs that are not yet contained may be assigned an object class, often Keter, but in some articles Uncontained is used in place of an object class to emphasise that ongoing effort is required to establish or restore containment.");
 
 CREATE TABLE secondary_class (
-    id INTEGER PRIMARY KEY,
+    id INTEGER AUTOINCREMENT PRIMARY KEY,
     name TEXT NOT NULL, -- eg. Thaumiel, Appolyion, ect.
-    description TEXT NOT NULL -- not normally accessed
+    -- no description, file ref
     )
 
-INSERT INTO secondary_class (id, name, description)
-VALUES ((SELECT MAX(id) + 1 FROM secondary_class), "", "");
+INSERT INTO secondary_class (name, description)
+VALUES ("", "");
 
 CREATE TABLE disruption_class (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL, -- eg. Dark, Vlam, ect.
-    description TEXT NOT NULL -- not normally accessed
+    -- no description, file ref
     )
 
-INSERT INTO disruption_class (id, name, description)
-VALUES ((SELECT MAX(id) + 1 FROM disruption_class), "Amida", "This Disruption Class should be reserved for special circumstances when The Foundation is essentially 'declaring war' on an anomaly. When an anomaly poses such a dire threat to the status quo and The Foundation's veil that there is no other option than to use all possible options in order to Neutralize it.
-
-The effects of an Amida anomaly would extend to the entire known world and possibly the entire universe.");
+INSERT INTO disruption_class (name)
+VALUES ("Amida");
 
 CREATE TABLE risk_class (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL, -- eg. Notice, Danger, ect.
-    description TEXT NOT NULL -- not normally accessed
+    -- no description, file ref
     )
 
-INSERT INTO risk_class (id, name, description)
-VALUES ((SELECT MAX(id) + 1 FROM risk_class), "Critical", "This Risk Class should only be chosen when the object's effects will be near instant and/or extremely severe.
-
-It does not, necessarily, need to cause actual death, but death is incredibly likely and expected. Any individual nearby will feel the effects near instantly and the possibility of recovery is impossible.");
+INSERT INTO risk_class (name)
+VALUES ("Critical");
 
 CREATE TABLE titles (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL, -- title (eg. site director, junior researcher, O5 council member)
-    description TEXT NOT NULL -- not normally accessed
+    -- no description, file ref
     )
 
-INSERT INTO titles (id, name, description)
-VALUES ((SELECT MAX(id) + 1 FROM titles), "O5 Council Member", "The O5 Council refers to the committee consisting of the highest-ranking directors of the Foundation. With complete access to all information regarding anomalies in containment, the O5 Council oversees all Foundation operations worldwide and directs its long-term strategic plans. Due to the sensitivity of their positions, O5 Council members must not come into direct contact with any anomalous object, entity, or phenomenon. Furthermore, the identities of all O5 Council members is classified; all council members are referred to only by their numeric designation (O5-1 through O5-13).");
+INSERT INTO titles (name)
+VALUES ("O5 Council Member");
 
 CREATE TABLE external_files (
     id INTEGER PRIMARY KEY,
@@ -150,7 +146,7 @@ CREATE TABLE commands (
     description TEXT NOT NULL -- a description of what the command does
     )
 
-
+ 
 In addition to the sqlite database, there will be the following files:
 Users may have text files (format: users/{id}.txt) with additional notes (if necessary, likely not)
 Each SCP will have a folder (format: scps/{id}) with containment procedures, description, and addenda (if applicable) in seperate text files
@@ -158,4 +154,3 @@ MTF's will have a text file (format: mtfs/{id}.txt) with their task force missio
 Sites will have a text file (format: sites/{id}.txt) with a description and location (coordinates and place: eg Paris, France - 12.35463, 54.76854)
 
 Indexes:
-CREATE INDEX user_names
