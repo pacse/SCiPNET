@@ -52,22 +52,6 @@ CREATE TABLE sites (
     FOREIGN KEY(director) REFERENCES users(id)
     )
 
-CREATE TABLE site_personnel (
-    site_id INTEGER NOT NULL,
-    user_id INTEGER NOT NULL,
-
-    FOREIGN KEY(site_id) REFERENCES sites(id),
-    FOREIGN KEY(user_id) REFERENCES users(id)
-    )
-
-CREATE TABLE site_scps (
-    site_id INTEGER NOT NULL,
-    scp_id INTEGER NOT NULL,
-
-    FOREIGN KEY(site_id) REFERENCES sites(id),
-    FOREIGN KEY(scp_id) REFERENCES scps(id)
-    )
-
 -- admin tables
 
 CREATE TABLE audit_log (
@@ -146,7 +130,43 @@ CREATE TABLE commands (
     description TEXT NOT NULL -- a description of what the command does
     )
 
- 
+
+Deepwell folder structure:
+deepwell
+  ├─ SCiPNET.db
+	├─ scps
+  │ ├─ 1 # when displaying, show leading 0's for min len of 3 digits
+	│ │ ├─ cp.txt # containment procedures with less chars
+	│ │ ├─ desc.txt # description
+	│ │ ├─ addenda
+	│ │ │ └─ 1.txt # Addendum index (start at 1)
+	│ │ ├─ hist_cps # past containment procedures, updates when file changes (if still same scp) for narrative
+	│ │ │ └─ 1.txt
+	│ │ └─ hist_descs # past descriptions, updates when file changes (if still same scp) for narrative
+	│ │   └─ 1.txt
+  │ └─ 2
+  │   └─ # same structure as 001
+	├─ sites
+  │ ├─ 16
+	│ │ ├─ desc.txt # site description
+	│ │ └─ security.txt # site security details: Area monitoring (move to deepwell?), any others?
+  │ └─ # other sites
+	├─ mtfs
+  │ ├─ 1 # mtf id from deepwell
+	│ │ ├─ desc.txt # mtf description
+	│ │ └─ missions # all missions # classified, specified in filename
+	│ │   └─ 5-1.txt # {classification level}-{mission index (start at 1)}
+  │ └─ # other mtfs
+	└─ users # any files associated with users
+    ├─ 1 # uid from deepwell
+	  │ ├─ projs.txt # user projects, eg assigned scps, roles there, ect
+	  │ └─ standing.txt # disciplinary history (out of clearance file access)
+    └─ # other users
+
+
+
+└─ ├─ │
+
 In addition to the sqlite database, there will be the following files:
 Users may have text files (format: users/{id}.txt) with additional notes (if necessary, likely not)
 Each SCP will have a folder (format: scps/{id}) with containment procedures, description, and addenda (if applicable) in seperate text files
