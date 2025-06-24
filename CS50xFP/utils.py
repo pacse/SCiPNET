@@ -22,7 +22,7 @@ if SIZE < 120:
 
 ''' SQL stuff '''
 # Deepwell database connection
-db = SQL("sqlite:///SCiPNETdeepwell.db")
+db = SQL("sqlite:///deepwell/SCiPNET.db")
 
 # Get the next id in a table
 def get_next_id(table: str) -> int:
