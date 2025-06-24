@@ -1,0 +1,1 @@
+Site-06-3 is a containment facility housing numerous low-risk human and humanoid entities, most notably several former Foundation personnel. Site-06-3 employs a multi-national staff, and was formerly located in the United States of America (Site-06) and Germany (Site-06-2) prior to the decommission and demolition of these prior facilities.

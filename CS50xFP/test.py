@@ -1,9 +1,10 @@
 from utils import db
 
-rows = db.execute("SELECT id, name FROM disruption_class")
+db.execute("INSERT INTO sites (id) VALUES (0)")
+rows = db.execute("SELECT * FROM sites")
 for row in rows:
     print(row)
-    print(f"{row['id']} - {row['name']}")
+
 '''
 with open("output.txt", "w") as f:
     for row in rows:

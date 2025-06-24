@@ -1,0 +1,1 @@
+Site-01, also known as Overwatch Command, is a safe zone that acts as a data backup for all major Foundation facilities worldwide, as well as a secure meeting facility for O5 Council members and other high-ranking Foundation personnel. All further details, including the location of Site-01, are strictly classified.
