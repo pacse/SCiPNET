@@ -1,0 +1,176 @@
+CREATE TABLE users (
+    id INTEGER AUTOINCREMENT PRIMARY KEY NOT NULL,
+    name TEXT NOT NULL,
+    password TEXT NOT NULL, -- add later: store securely (hashing + salting)
+    clearance_level_id INTEGER NOT NULL,
+    title_id INTEGER NOT NULL,
+    site_id INTEGER NOT NULL,
+    phrase TEXT, -- Override phrase, optional field
+    last_login DATETIME DEFAULT NULL,
+
+    FOREIGN KEY(site_id) REFERENCES sites(id),
+    FOREIGN KEY(clearance_level_id) REFERENCES clearance_levels(id),
+    FOREIGN KEY(title_id) REFERENCES titles(id)
+    )
+
+INSERT INTO users (id, name, password, clearance_level_id, title_id, site_id, phrase, gender)
+VALUES ((SELECT MAX(id) + 1 FROM users), "", "", 0, 0, , "", "");
+
+CREATE TABLE scps (
+    id INTEGER AUTOINCREMENT PRIMARY KEY NOT NULL,
+    classification_level_id INTEGER NOT NULL,
+    containment_class_id INTEGER NOT NULL,
+    secondary_class_id INTEGER,
+    disruption_class_id INTEGER,
+    risk_class_id INTEGER,
+    site_responsible_id INTEGER NOT NULL, -- should it be not null?
+    assigned_task_force_id INTEGER, -- safe one's prolly don't need a task force
+    archived BOOLEAN DEFAULT FALSE NOT NULL, -- weather or not the file's been archived (neutralized, explained, ect)
+
+    FOREIGN KEY(classification_level_id) REFERENCES clearance_levels(id),
+    FOREIGN KEY(containment_class_id) REFERENCES containment_classes(id),
+    FOREIGN KEY(secondary_class_id) REFERENCES secondary_classes(id),
+    FOREIGN KEY(disruption_class_id) REFERENCES disruption_classes(id),
+    FOREIGN KEY(risk_class_id) REFERENCES risk_classes(id),
+    FOREIGN KEY(site_responsible_id) REFERENCES sites(id),
+    FOREIGN KEY(assigned_task_force_id) REFERENCES mtfs(id)
+    )
+
+CREATE TABLE mtfs (
+    id INTEGER AUTOINCREMENT PRIMARY KEY NOT NULL,
+    name TEXT NOT NULL, -- eg. Epsilon-6
+    nickname TEXT NOT NULL, -- eg. "Village Idiots"
+    leader INTEGER, -- probably null when ripped from wikidot
+    active BOOLEAN DEFAULT TRUE,
+
+    FOREIGN KEY(leader) REFERENCES users(id)
+    )
+
+CREATE TABLE sites (
+    id INTEGER AUTOINCREMENT PRIMARY KEY NOT NULL,
+    name TEXT NOT NULL,
+    director INTEGER,
+    FOREIGN KEY(director) REFERENCES users(id)
+    )
+
+-- admin tables
+
+CREATE TABLE audit_log (
+    id INTEGER AUTOINCREMENT NOT NULL,
+    user_id INTEGER NOT NULL,
+    action TEXT NOT NULL, -- what happened (ie. login, file change, ect)
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    details TEXT, -- optional additional details (eg. action description)
+
+    FOREIGN KEY(user_id) REFERENCES users(id)
+    )
+
+CREATE TABLE clearance_levels (
+    id INTEGER AUTOINCREMENT PRIMARY KEY,
+    name TEXT NOT NULL, -- ie. Level 3 - Secret, Level 5 - Thaumiel, ect.
+    -- no description, file ref
+    )
+
+INSERT INTO clearance_levels (id, name, description)
+VALUES ((SELECT MAX(id) + 1 FROM clearance_levels), "Level 6 - Cosmic Top Secret", "This document is ONLY available to a member of the O5 Council. All access to this document is granted solely at the discretion of an O5 Council member.");
+
+CREATE TABLE containment_class (
+    id INTEGER AUTOINCREMENT PRIMARY KEY,
+    name TEXT NOT NULL, -- eg. Safe, Euclid, Keter, ect.
+    -- no description, file ref
+    )
+
+INSERT INTO containment_class (id, name, description)
+VALUES ((SELECT MAX(id) + 1 FROM containment_class), "Uncontained", "SCPs that are not yet contained may be assigned an object class, often Keter, but in some articles Uncontained is used in place of an object class to emphasise that ongoing effort is required to establish or restore containment.");
+
+CREATE TABLE secondary_class (
+    id INTEGER AUTOINCREMENT PRIMARY KEY,
+    name TEXT NOT NULL, -- eg. Thaumiel, Appolyion, ect.
+    -- no description, file ref
+    )
+
+INSERT INTO secondary_class (name, description)
+VALUES ("", "");
+
+CREATE TABLE disruption_class (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL, -- eg. Dark, Vlam, ect.
+    -- no description, file ref
+    )
+
+INSERT INTO disruption_class (name)
+VALUES ("Amida");
+
+CREATE TABLE risk_class (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL, -- eg. Notice, Danger, ect.
+    -- no description, file ref
+    )
+
+INSERT INTO risk_class (name)
+VALUES ("Critical");
+
+CREATE TABLE titles (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL, -- title (eg. site director, junior researcher, O5 council member)
+    -- no description, file ref
+    )
+
+INSERT INTO titles (name)
+VALUES ("O5 Council Member");
+
+CREATE TABLE external_files (
+    id INTEGER PRIMARY KEY,
+    file_path TEXT NOT NULL,
+    associated_id INTEGER NOT NULL, -- link to scp/user/mtf/site
+    last_modified DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+
+CREATE TABLE commands (
+    command TEXT NOT NULL, -- eg. help, access, edit, ect
+    description TEXT NOT NULL -- a description of what the command does
+    )
+
+
+Deepwell folder structure: **Use md instead of txt**
+deepwell
+  ├─ SCiPNET.db
+	├─ scps
+  │ ├─ 1 # when displaying, show leading 0's for min len of 3 digits
+	│ │ ├─ cp.md # containment procedures with less chars
+	│ │ ├─ desc.md # description
+	│ │ ├─ addenda
+	│ │ │ └─ 1.md # Addendum index (start at 1)
+	│ │ ├─ hist_cps # past containment procedures, updates when file changes (if still same scp) for narrative
+	│ │ │ └─ 1.md
+	│ │ └─ hist_descs # past descriptions, updates when file changes (if still same scp) for narrative
+	│ │   └─ 1.md
+  │ └─ 2
+  │   └─ # same structure as 001
+	├─ sites
+  │ ├─ # site name, from deepwell
+	│ │ ├─ desc.md # site description
+	│ │ ├─ loc.md # site location
+	│ │ └─ security.md # site security details: Area monitoring (move to deepwell?), any others?
+  │ └─ # other sites
+	├─ mtfs
+  │ ├─ 1 # mtf id from deepwell
+	│ │ ├─ desc.md # mtf description
+	│ │ └─ missions # all missions # classified, specified in filename
+	│ │   └─ 5-1.md # {classification level}-{mission index (start at 1)}
+  │ └─ # other mtfs
+	└─ users # any files associated with users
+    ├─ 1 # uid from deepwell
+	  │ ├─ projs.md # user projects, eg assigned scps, roles there, ect
+	  │ └─ standing.md # disciplinary history (out of clearance file access)
+    └─ # other users
+
+└─ ├─ │
+
+In addition to the sqlite database, there will be the following files:
+Users may have text files (format: users/{id}.md) with additional notes (if necessary, likely not)
+Each SCP will have a folder (format: scps/{id}) with containment procedures, description, and addenda (if applicable) in seperate text files
+MTF's will have a text file (format: mtfs/{id}.md) with their task force mission and operation history
+Sites will have a text file (format: sites/{id}.md) with a description and location (coordinates and place: eg Paris, France - 12.35463, 54.76854)
+
+Indexes:
