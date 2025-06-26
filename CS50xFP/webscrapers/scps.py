@@ -1,41 +1,57 @@
 from bs4 import BeautifulSoup
 import requests
 
+# page to get
 url = "https://scp-wiki.wikidot.com/scp-049"
-req = requests.get(url)
 
+# get page content
+req = requests.get(url)
 soup = BeautifulSoup(req.content, "html.parser")
 
+# filter just key div
 pc = soup.find("div", id="page-content")
 
+# apply Perl filter
+
+# get all text tags
 tags = pc.find_all(["p", "li", "blockquote"]) # type: ignore
 
+# get all page text
 text: list[str] = []
 
-# get all page text
 for tag in tags:
    print (f"Tag: {tag.name} | Attributes: {tag.attrs}")
    for txt in tag.stripped_strings:
       print(txt)
       text.append(txt)
 
-# vars to store what matters
-item_num: str = "NULL"
-obj_class: str = "NULL"
-scps: str = ""
-desc: str = "NULL"
+# vars to store what matter
+item_num = ""
+obj_class = ""
+scps = ""
+desc = ""
 addenda: list[str] = []
+addendum = "" # write addendum before appending it to addenda
 addenda_names: list[str] = []
+
+# flags to prevent excessive looping
+writing_item_num = False
+writing_obj_class = False
+writing_scps = False
+writing_desc = False
+writing_addendum = False
 
 for i, string in enumerate(text):
   if string == "Item #:": # get item num
-    item_num = text[i+1]
+    writing_item_num = True
 
   elif string == "Object Class:": # get obj class
-    obj_class = text[i+1]
+    writing_obj_class = True
 
   # now most of the rest of the doc is important
   elif string == "Special Containment Procedures:":
+   writing_scps = True
+   
     # rip containment procedures
     j = i + 1
     string = text[j]
