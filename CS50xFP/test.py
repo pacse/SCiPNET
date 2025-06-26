@@ -1,12 +1,14 @@
-from utils import db
+from rich.console import Console as C
+from rich.markdown import Markdown as M
 
-db.execute("INSERT INTO sites (id) VALUES (0)")
-rows = db.execute("SELECT * FROM sites")
-for row in rows:
-    print(row)
+markdown_content = """
+    # This is a Heading
+    Rich can do a pretty *decent* job of rendering markdown.
+    - This is a list item
+    - This is another list item
+    """
 
-'''
-with open("output.txt", "w") as f:
-    for row in rows:
-        f.write(f"printc(\"{row['id']} - {row['name']}\")\n")
-'''
+console = C()
+md = M(markdown_content)
+
+console.print(md)
