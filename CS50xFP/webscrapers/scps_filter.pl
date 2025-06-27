@@ -6,6 +6,9 @@
 use strict;
 use warnings;
 
+# set encoding to UTF-8
+use open ":std", ":encoding(UTF-8)";
+
 # Slurp input from python
 undef $/;
 my $html = <STDIN>;
@@ -16,8 +19,11 @@ $html =~ s{<em>}{*}gis; # replace all <em> with *, g: match all, i: case insensi
 $html =~ s{</em>}{*}gis; # replace all </em> with *
 
 # proper bolding
-$html =~ s{<strong>}{"**"}gis; # replace all <strong> with **
-$html =~ s{</strong>}{"**"}gis; # replace all </strong> with **
+$html =~ s{<strong>}{**}gis; # replace all <strong> with **
+$html =~ s{</strong>}{**}gis; # replace all </strong> with **
+
+# horizintal rules
+$html =~ s{<hr>}{---}gis; # replace all <hr> with ---
 
 # remove wikidot footnotes
 $html =~ s{<sup class="footnoteref">.*?</sup>}{}gis;
