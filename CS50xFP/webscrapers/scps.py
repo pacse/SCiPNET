@@ -8,9 +8,9 @@ from urllib.parse import quote
 from urllib.parse import unquote
 from typing import cast
 
-# function from claude (commented by me)
-# to handle md syntax
-def handle_md_syntax(text: str) -> str:
+# function partially from claude (commented by me)
+# to handle syntax and proper display of chars
+def handle_syntax(text: str) -> str:
     # get each line of the text
     lines = text.split("\n")
     result = [] # where to save processed
@@ -22,7 +22,10 @@ def handle_md_syntax(text: str) -> str:
         if (not line.startswith(">")) and line.strip() != "":
             result.append("") # double newline
 
-    return "\n".join(result) # concatenate and give to user
+    done = "\n".join(result) # concatenate
+
+    # replace nbsp and ellipsis in test
+    return done.replace("\u00A0", " ").replace("\u2026", "...")
 
 
 scp = "049"
@@ -227,11 +230,11 @@ if curr_section == "addendum" and curr_addendum:
     addenda_names.append(curr_addendum_name)
 
 # format stuff
-SCPs = handle_md_syntax(SCPs)
-desc = handle_md_syntax(desc)
+SCPs = handle_syntax(SCPs)
+desc = handle_syntax(desc)
 
 for addendum in addenda:
-    addendum = handle_md_syntax(addendum)
+    addendum = handle_syntax(addendum)
 
 # === save ===
 
