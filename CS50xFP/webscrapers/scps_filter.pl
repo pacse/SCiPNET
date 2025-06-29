@@ -22,11 +22,8 @@ $html =~ s{</em>}{*}gis; # replace all </em> with *
 $html =~ s{<strong>}{**}gis; # replace all <strong> with **
 $html =~ s{</strong>}{**}gis; # replace all </strong> with **
 
-# horizintal rules
-$html =~ s{<hr>}{---}gis; # replace all <hr> with ---
-
-# remove wikidot footnotes
-$html =~ s{<sup class="footnoteref">.*?</sup>}{}gis;
+# remove blank <p> tags
+$html =~ s{<p></p>}{}gis;
 
 # === print html ===
 print $html;
