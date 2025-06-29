@@ -1,4 +1,4 @@
-The following interview is an excerpt from the 4/16/17�049 Incident Report. The interview was conducted by Dr. Elijah Itkin, and took place three weeks after the start of the initial investigation.
+The following interview is an excerpt from the 4/16/17 049 Incident Report. The interview was conducted by Dr. Elijah Itkin, and took place three weeks after the start of the initial investigation.
 
 >
 > **Date:** 5/7/17
@@ -19,12 +19,11 @@ The following interview is an excerpt from the 4/16/17�049 Incident Report. Th
 >
 > **Dr. Itkin:** Dr. Sherman noted in his report that you seemed to be mournful during your initial interview.
 >
-> **SCP-049:** Mourn- (*Pauses*) Perhaps. I had not thought that� It is lamentable that a fellow doctor became infected, but the work continues. Regrettable as� as it was, Dr. Hamm's death provided important insight. Living human subjects are the only way to proceed forward, I am decided. My cure is of little use on dead flesh, and I have gleaned all I can from your generous supply of corpses. My desires turn towards tending to those still living who suffer from the disease.
+> **SCP-049:** Mourn- (*Pauses*) Perhaps. I had not thought that... It is lamentable that a fellow doctor became infected, but the work continues. Regrettable as... as it was, Dr. Hamm's death provided important insight. Living human subjects are the only way to proceed forward, I am decided. My cure is of little use on dead flesh, and I have gleaned all I can from your generous supply of corpses. My desires turn towards tending to those still living who suffer from the disease.
 >
 > **Dr. Itkin:** I'm afraid you're going to be disappointed.
 >
-> **SCP-049:** (*Laughs*)
-Oh doctor, I wouldn't be so sure.
+> **SCP-049:** (*Laughs*) Oh doctor, I wouldn't be so sure.
 >
 > [END LOG]
 >

@@ -31,7 +31,7 @@ The following is a log of several occasions during which SCP-049 was observed op
 >
 > **Preface:** SCP-049 was provided the corpse of a recently deceased orangutan. SCP-049 expressed noted gratitude at the provision, due to the similarities between the orangutan and common human physiology.
 >
-> **Observation Notes:** SCP-049 spent several days operating on the orangutan, reanimating it several times. However, SCP-049 appeared to be discontent with the results it experienced, returning to the creature three times after its initial reanimation for additional work. After it was unable to reanimate the corpse a fifth time, SCP-049 turned the corpse over to Foundation staff for incineration, stating "I have learned so much from this, though I fear my early optimism was misplaced. I hadn�t yet come across such a� a stumbling block on my road to the cure. More subjects like this would do a great deal in advancing my research."
+> **Observation Notes:** SCP-049 spent several days operating on the orangutan, reanimating it several times. However, SCP-049 appeared to be discontent with the results it experienced, returning to the creature three times after its initial reanimation for additional work. After it was unable to reanimate the corpse a fifth time, SCP-049 turned the corpse over to Foundation staff for incineration, stating "I have learned so much from this, though I fear my early optimism was misplaced. I hadn't yet come across such a... a stumbling block on my road to the cure. More subjects like this would do a great deal in advancing my research."
 >
 
 >

@@ -23,7 +23,7 @@ In the aftermath of this incident, SCP-049 was interviewed by Dr. Theron Sherman
 >
 > **Dr. Sherman:** You killed Raymond Hamm and then *butchered him* until he-
 >
-> **SCP-049:** (*Interrupting, angrily*) Not dead! No! Not� not dead. He is� he is cured.
+> **SCP-049:** (*Interrupting, angrily*) Not dead! No! Not... not dead. He is... he is cured.
 >
 > **Dr. Sherman:** Cured? Cured of what?
 >
@@ -31,11 +31,11 @@ In the aftermath of this incident, SCP-049 was interviewed by Dr. Theron Sherman
 >
 > **Dr. Sherman:** (*Interrupting*) What pestilence? You keep going on and on about this pestilence but you have not *once* been able to properly identify this "disease". What could you have possibly seen in him today that you had not seen so many times before? That it would be worth his life?
 >
-> **SCP-049:** He� (*pauses*) The Pestilence presents and progresses in unforeseeable fashions, and has a queer way of- of creeping into the unprepared, and� (*breathing becomes heavier*) call it what you want, doctor. It was a mercy I did to him. He is cured.
+> **SCP-049:** He... (*pauses*) The Pestilence presents and progresses in unforeseeable fashions, and has a queer way of- of creeping into the unprepared, and... (*breathing becomes heavier*) call it what you want, doctor. It was a mercy I did to him. He is cured.
 >
 > **Dr. Sherman:** He is a *vegetable*!
 >
-> **SCP-049:** (*Pauses*) I� I would not expect you to understand. You and your� your *ilk* have proven time and time again to be not men of science, but men of- of emotion. You cannot appreciate the horrors I have seen, those many millions who have succumbed to the Pestilence and been changed, who-
+> **SCP-049:** (*Pauses*) I... I would not expect you to understand. You and your... your *ilk* have proven time and time again to be not men of science, but men of- of emotion. You cannot appreciate the horrors I have seen, those many millions who have succumbed to the Pestilence and been changed, who-
 >
 > **Dr. Sherman:** Your cure cost Ray his life!
 >
@@ -43,11 +43,11 @@ In the aftermath of this incident, SCP-049 was interviewed by Dr. Theron Sherman
 >
 > **Dr. Sherman:** (*Talking over SCP-049*) What disease? What pestilence? He was a healthy man! He was a good doctor!
 >
-> **SCP-049:** -am offering it freely to the afflicted! You are *not* worth this argument, sir. You are shortsighted and foolish. Dr. Hamm was sick, and I� (*breath catches*) I *cured* him. I am the only one who can do this. My work *must* continue, there is so much still to learn, so much to-
+> **SCP-049:** -am offering it freely to the afflicted! You are *not* worth this argument, sir. You are shortsighted and foolish. Dr. Hamm was sick, and I... (*breath catches*) I *cured* him. I am the only one who can do this. My work *must* continue, there is so much still to learn, so much to-
 >
 > **Dr. Sherman:** I've had enough of this. Consider your allowances revoked. Welcome to containment, oh-four-nine. (*Away from mic*) We're done here.
 >
-> **SCP-049:** -do, and others can be saved! Even you, though you do not deserve it, might be saved! I can save them all! I can cast down this plague, once and for all. I can do this! Only me! I� I� (*labored breathing*) I saved� I saved him� Dr. Hamm, I� I cured him� he was sick, I know he was sick, I *know* he was, and I� you are all sick, but I� I can *save* you. I can save all of you, because I� I am the cure.
+> **SCP-049:** -do, and others can be saved! Even you, though you do not deserve it, might be saved! I can save them all! I can cast down this plague, once and for all. I can do this! Only me! I... I... (*labored breathing*) I saved... I saved him... Dr. Hamm, I... I cured him... he was sick, I know he was sick, I *know* he was, and I... you are all sick, but I... I can *save* you. I can save all of you, because I... I am the cure.
 >
 > [END LOG]
 >
