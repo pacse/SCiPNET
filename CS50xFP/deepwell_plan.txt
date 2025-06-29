@@ -13,9 +13,6 @@ CREATE TABLE users (
     FOREIGN KEY(title_id) REFERENCES titles(id)
     )
 
-INSERT INTO users (id, name, password, clearance_level_id, title_id, site_id, phrase, gender)
-VALUES ((SELECT MAX(id) + 1 FROM users), "", "", 0, 0, , "", "");
-
 CREATE TABLE scps (
     id INTEGER AUTOINCREMENT PRIMARY KEY NOT NULL,
     classification_level_id INTEGER NOT NULL,
