@@ -1,5 +1,7 @@
 SCP-049 was discovered during the investigation of a series of unknown disappearances in the town of Montauban in southern France. During a raid on a local home, investigators found several instances of SCP-049-2, as well as SCP-049. While law enforcement personnel engaged the hostile 049-2 instances, SCP-049 was noted as watching the engagement and taking notes in its journal. After all of the 049-2 instances were dispatched, SCP-049 willingly entered Foundation custody.
+
 The following interview was conducted by Dr. Raymond Hamm during the initial investigation.
+
 >
 > **Interviewer:** Dr. Raymond Hamm, Site-85
 >
@@ -25,7 +27,7 @@ The following interview was conducted by Dr. Raymond Hamm during the initial inv
 >
 > **Dr. Hamm:** The Pestilence? What do you mean?
 >
-> **SCP-049:** The Scourge! The Great Dying. Come now, you know, the, uh… (*taps temple furiously*) …what is it they call it, the… the… ah, no matter. The Pestilence, yes. It abounds outside these walls, you know. So many have succumbed, and many more will continue to, until such time as a perfect cure can be developed. (*Leans back in its chair*) Fortunately, I am very close. It is my duty in life to rid the world of it, you see. The Cure To End All Cures!
+> **SCP-049:** The Scourge! The Great Dying. Come now, you know, the, uhï¿½ (*taps temple furiously*) ï¿½what is it they call it, theï¿½ theï¿½ ah, no matter. The Pestilence, yes. It abounds outside these walls, you know. So many have succumbed, and many more will continue to, until such time as a perfect cure can be developed. (*Leans back in its chair*) Fortunately, I am very close. It is my duty in life to rid the world of it, you see. The Cure To End All Cures!
 >
 > **Dr. Hamm:** When you say "The Great Dying", are you talking about the bubonic plague?
 >
@@ -49,5 +51,7 @@ The following interview was conducted by Dr. Raymond Hamm during the initial inv
 >
 > [END LOG]
 >
+
 *Interviewer's Note: While SCP-049 is capable of communicating in a very human way, there is a strange sense of unease that one experiences when in its presence. Make no mistake, there is something very uncanny about this entity indeed.*
+
 *Additionally, we've confiscated that pointed stick that SCP-049 keeps waving around. Part of this was due to standard confiscation protocols for the possessions of anomalies, and part because 049 really is a menace swinging it around like he does. The entity was displeased at first, but after we made some concessions in providing it with "test subjects" (which are, admittedly, more for the benefit of our own research) it warmed up to the idea.*

@@ -1,5 +1,7 @@
 While in containment at Site-19, SCP-049 has spent a considerable amount of time studying and performing surgery on the various mammalian corpses it has been provided. SCP-049 will routinely spend several days performing surgery, and then (regardless of whether or not the corpse becomes an instance of SCP-049-2) spending several more days documenting its findings in a thick leather journal stored within its doctor's bag. SCP-049 will often seek to share its findings with members of Foundation staff.
+
 The following is a log of several occasions during which SCP-049 was observed operating on a mammalian corpse.
+
 >
 > **Observational Log 049.OL.1 SUMMARY**
 >
@@ -11,6 +13,7 @@ The following is a log of several occasions during which SCP-049 was observed op
 >
 > The resulting 049-2 instance became animated, flailing and grasping at the walls of the chamber with a number of manufactured limbs while moaning out of an oblong orifice now present in its sternum. During this time, SCP-049 was observed taking notes of the instance in its journal, and remarking to the watching research staff about the efficacy of its cure. Security personnel entered the chamber to move SCP-049 back to containment, and were attacked by the instance. The security team dispatched the 049-2 instance, and SCP-049 returned to containment with no resistance, stating that it was pleased with the results.
 >
+
 >
 > **Observational Log 049.OL.2 SUMMARY**
 >
@@ -20,6 +23,7 @@ The following is a log of several occasions during which SCP-049 was observed op
 >
 > **Observation Notes:** SCP-049 operated on the goat corpse for several days, eventually resulting in an instance of SCP-049-2. SCP-049 expressed pleasure in this outcome, though admitted "the disease was still in its nascent stage. My veterinarian practice is rudimentary, but the patient responded well to the procedure."
 >
+
 >
 > **Observational Log 049.OL.3 SUMMARY**
 >
@@ -27,8 +31,9 @@ The following is a log of several occasions during which SCP-049 was observed op
 >
 > **Preface:** SCP-049 was provided the corpse of a recently deceased orangutan. SCP-049 expressed noted gratitude at the provision, due to the similarities between the orangutan and common human physiology.
 >
-> **Observation Notes:** SCP-049 spent several days operating on the orangutan, reanimating it several times. However, SCP-049 appeared to be discontent with the results it experienced, returning to the creature three times after its initial reanimation for additional work. After it was unable to reanimate the corpse a fifth time, SCP-049 turned the corpse over to Foundation staff for incineration, stating "I have learned so much from this, though I fear my early optimism was misplaced. I hadn’t yet come across such a… a stumbling block on my road to the cure. More subjects like this would do a great deal in advancing my research."
+> **Observation Notes:** SCP-049 spent several days operating on the orangutan, reanimating it several times. However, SCP-049 appeared to be discontent with the results it experienced, returning to the creature three times after its initial reanimation for additional work. After it was unable to reanimate the corpse a fifth time, SCP-049 turned the corpse over to Foundation staff for incineration, stating "I have learned so much from this, though I fear my early optimism was misplaced. I hadnï¿½t yet come across such aï¿½ a stumbling block on my road to the cure. More subjects like this would do a great deal in advancing my research."
 >
+
 >
 > **Observational Log 049.OL.7 FULL**
 >
@@ -40,6 +45,7 @@ The following is a log of several occasions during which SCP-049 was observed op
 >
 > Over the next few days, SCP-049 spent a considerable amount of time adjusting the organs of the bovine corpse with a number of large metal instruments. After eight days, SCP-049 produced a lightning rod, which Dr. Hamm exchanged for an electric cattle prod attached to an extension cord, and struck the corpse in several locations. This action seemingly had the effect of reanimating the bovine, which once again became ambulatory, despite the inversion of the head and reorientation of its limbs.
 >
+
 >
 > **Follow Up Interview**
 >
