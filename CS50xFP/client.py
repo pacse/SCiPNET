@@ -4,12 +4,17 @@ Client
 import art
 import socket
 import sys
-from utils import ADDR, decode, encode, get_next_id, init_usr, handle_reply, printc
+from utils import ADDR, RCVSIZE, decode, display_scp, encode, init_usr, printc, recv, send
+from rich.console import Console
+from rich.markdown import Markdown
 
 DEBUG = False
 
+# Quickstart for debugging
+QS = True if len(sys.argv) == 3 else False
 
-def conn_to_server(addr: tuple) -> socket.socket:
+
+def conn_to_server(addr: tuple[str, int]) -> socket.socket:
     '''
     Establishes connection to server
     '''
@@ -18,21 +23,22 @@ def conn_to_server(addr: tuple) -> socket.socket:
     print("Connected . . .")
     return s
 
-
 if __name__ == "__main__":
-    with conn_to_server(ADDR) as conn:
-        art.startup()  # print startup screen
+    with conn_to_server(ADDR) as server:
+        if not QS:
+            art.startup()  # print startup screen
+        console = Console() # console to display markdown
 
         # authenticate
-        id = int(input("ID: ")) # get ID
-        password = input("Password: ") # get PW
+        id = sys.argv[1] if QS else int(input("ID: ")) # get ID
+        password = sys.argv[2] if QS else input("Password: ") # get PW
 
-        conn.sendall(encode(f"AUTH {id} {password}")) # send auth request to server
-        print("Auth sent . . .")
-        result = conn.recv(1024) # receive reply from server
+        send(server, f"AUTH {id} {password}") # send auth request to server
+        result = recv(server) # receive reply from server
         
         if not result: # no data, some error happened
             printc("[ERROR]: NO RESPONSE FROM DEEPWELL")
+            server.close()
             sys.exit()
         
         # we have data, decode it
@@ -42,7 +48,9 @@ if __name__ == "__main__":
             print(f"Result: {result}")
 
         if result[0] == False: # invalid auth
-            printc("INVALID AUTHORIZATION\nACCESS DENIED")
+            #TODO: prettify
+            printc("INVALID AUTHORIZATION")
+            printc("ACCESS DENIED")
             sys.exit()
 
         else: # valid auth
@@ -58,8 +66,8 @@ if __name__ == "__main__":
                 if split_request[1] == "SCP": # scp file
                     scp = {}
                     printc("CREATE SCP")
-                    conn.sendall(encode("CREATE SCP"))  # send create request to server
-                    response = conn.recv(1024)
+                    send(server, "CREATE SCP")  # send create request to server
+                    response = recv(server)
 
                     if not response: # sanity check
                         printc("[ERROR]: NO RESPONSE FROM SERVER")
@@ -101,7 +109,60 @@ if __name__ == "__main__":
 
                     scp["description"] = input("Description: ")
 
-                    conn.sendall(encode(scp)) # send scp data to server
-                    response = conn.recv(1024)
+                    send(server, scp) # send scp data to server
+                elif split_request[1] == "MTF":
+                    # TODO
+                    print("NOT YET IMPLEMENTED")
+                elif split_request[1] == "SITE":
+                    # TODO
+                    print("NOT YET IMPLEMENTED")
+                elif split_request[1] == "USER":
+                    # TODO
+                    print("NOT YET IMPLEMENTED") 
+                elif split_request[1] == "SITE":
+                    # TODO
+                    print("NOT YET IMPLEMENTED")
+                else:
+                    # TODO: Better message
+                    printc(f"INVALID: {split_request[1]!r}")
+
+            elif split_request[0] == "ACCESS": # usr wants to access a file
+                if split_request[1] == "SCP":  # scp file
+                    print(f"Requesting access to file SCP-{split_request[2]}. . .")
+                    send(server, f"ACCESS SCP {split_request[2]}")
+                    response = recv(server)
+
+                    if not response: # no data, some error happened
+                        printc("[ERROR]: NO RESPONSE FROM DEEPWELL")
+                        server.close()
+                        sys.exit()
+                    
+                    # decode
+                    response = decode(response)
+                    if response["status"] == "EXPUNGED":
+                        art.expunged(split_request[2])
+                    elif response["status"] == "REDACTED":
+                        art.redacted(split_request[2], response["f_classification"], response["usr_clearance"])
+                    elif response["status"] == "GRANTED":
+                        art.granted(split_request[2])
+                        display_scp(response, console)
+                    else:
+                        printc("[ERROR]")
+                        printc("INVALID RESPONSE FROM SERVER")
+                elif split_request[1] == "MTF":
+                    # TODO
+                    print("NOT YET IMPLEMENTED")
+                elif split_request[1] == "SITE":
+                    # TODO
+                    print("NOT YET IMPLEMENTED")
+                elif split_request[1] == "USER":
+                    # TODO
+                    print("NOT YET IMPLEMENTED") 
+                elif split_request[1] == "SITE":
+                    # TODO
+                    print("NOT YET IMPLEMENTED")
+                else:
+                    # TODO: Better message
+                    printc(f"INVALID: {split_request[1]!r}")
             else:
-                print("INVALID REQUEST")
+                print("INVALID COMMAND")
