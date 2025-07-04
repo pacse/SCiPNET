@@ -5,8 +5,7 @@ import os
 from rich.console import Console
 from rich.markdown import Markdown
 from urllib.parse import quote
-from urllib.parse import unquote
-from typing import cast
+import sys
 
 # function partially from claude (commented by me)
 # to handle syntax and proper display of chars
@@ -75,6 +74,7 @@ result = subprocess.run(
 # check for errors
 if result.returncode != 0:
     print(f"Error with Perl filtering: {result.stderr.decode()}")
+    sys.exit()
 
 else:
     # decode output

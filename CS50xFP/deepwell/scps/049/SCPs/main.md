@@ -5,4 +5,3 @@ While SCP-049 is generally cooperative with most Foundation personnel, outbursts
 In order to facilitate the ongoing containment of SCP-049, the entity is to be provided with the corpse of a recently deceased animal (typically a bovine or other large mammal) once every two weeks for study. Corpses that become instances of SCP-049-2 are to be removed from SCP-049's containment cell and incinerated. SCP-049 is no longer permitted to interact with human subjects, and requests for human subjects are to be denied.
 
 **Temporary Containment Procedure Update:** (*See Addendum 049.3*) Per Containment Committee Order 049.S19.17.1, SCP-049 is no longer permitted to interact directly with any members of Foundation staff, nor is it to be provided with any additional corpses to be used in its surgeries. This order shall persist indefinitely, until such time a consensus regarding the ongoing containment of SCP-049 can be reached.
-
