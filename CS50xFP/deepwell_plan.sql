@@ -1,11 +1,13 @@
+-- reviewed by ChatGPT, all edits marked in ()
+
 CREATE TABLE users (
-    id INTEGER AUTOINCREMENT PRIMARY KEY NOT NULL,
+    id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
     password TEXT NOT NULL, -- add later: store securely (hashing + salting)
     clearance_level_id INTEGER NOT NULL,
     title_id INTEGER NOT NULL,
     site_id INTEGER NOT NULL,
-    phrase TEXT, -- Override phrase, optional field
+    override_phrase TEXT, -- Override phrase, optional field (phrase -> override_phrase for clarity)
     last_login DATETIME DEFAULT NULL,
 
     FOREIGN KEY(site_id) REFERENCES sites(id),
@@ -14,15 +16,15 @@ CREATE TABLE users (
     )
 
 CREATE TABLE scps (
-    id INTEGER AUTOINCREMENT PRIMARY KEY NOT NULL,
+    id INTEGER PRIMARY KEY NOT NULL,
     classification_level_id INTEGER NOT NULL,
     containment_class_id INTEGER NOT NULL,
     secondary_class_id INTEGER,
     disruption_class_id INTEGER,
     risk_class_id INTEGER,
-    site_responsible_id INTEGER NOT NULL, -- should it be not null?
-    assigned_task_force_id INTEGER, -- safe one's prolly don't need a task force
-    archived BOOLEAN DEFAULT FALSE NOT NULL, -- weather or not the file's been archived (neutralized, explained, ect)
+    site_responsible_id INTEGER NOT NULL,
+    assigned_task_force_id INTEGER,
+    status TEXT DEFAULT "active" CHECK(status IN ("active", "neutralized", "explained", "deleted")) -- Thanks ChatGPT for improving this from a bool :)
 
     FOREIGN KEY(classification_level_id) REFERENCES clearance_levels(id),
     FOREIGN KEY(containment_class_id) REFERENCES containment_classes(id),
@@ -34,26 +36,24 @@ CREATE TABLE scps (
     )
 
 CREATE TABLE mtfs (
-    id INTEGER AUTOINCREMENT PRIMARY KEY NOT NULL,
+    id INTEGER PRIMARY KEY,
     name TEXT NOT NULL, -- eg. Epsilon-6
     nickname TEXT NOT NULL, -- eg. "Village Idiots"
     leader INTEGER, -- probably null when ripped from wikidot
-    active BOOLEAN DEFAULT TRUE,
+    active BOOLEAN DEFAULT TRUE NOT NULL,
 
     FOREIGN KEY(leader) REFERENCES users(id)
     )
 
 CREATE TABLE sites (
-    id INTEGER AUTOINCREMENT PRIMARY KEY NOT NULL,
+    id INTEGER PRIMARY KEY NOT NULL,
     name TEXT NOT NULL,
     director INTEGER,
     FOREIGN KEY(director) REFERENCES users(id)
     )
 
--- admin tables
-
 CREATE TABLE audit_log (
-    id INTEGER AUTOINCREMENT NOT NULL,
+    id INTEGER PRIMARY KEY,
     user_id INTEGER NOT NULL,
     action TEXT NOT NULL, -- what happened (ie. login, file change, ect)
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -62,78 +62,60 @@ CREATE TABLE audit_log (
     FOREIGN KEY(user_id) REFERENCES users(id)
     )
 
+-- helper tables
+
 CREATE TABLE clearance_levels (
-    id INTEGER AUTOINCREMENT PRIMARY KEY,
+    id INTEGER PRIMARY KEY,
     name TEXT NOT NULL, -- ie. Level 3 - Secret, Level 5 - Thaumiel, ect.
-    -- no description, file ref
     )
 
-INSERT INTO clearance_levels (id, name, description)
-VALUES ((SELECT MAX(id) + 1 FROM clearance_levels), "Level 6 - Cosmic Top Secret", "This document is ONLY available to a member of the O5 Council. All access to this document is granted solely at the discretion of an O5 Council member.");
-
-CREATE TABLE containment_class (
-    id INTEGER AUTOINCREMENT PRIMARY KEY,
+CREATE TABLE containment_classes (
+    id INTEGER PRIMARY KEY,
     name TEXT NOT NULL, -- eg. Safe, Euclid, Keter, ect.
-    -- no description, file ref
     )
 
-INSERT INTO containment_class (id, name, description)
-VALUES ((SELECT MAX(id) + 1 FROM containment_class), "Uncontained", "SCPs that are not yet contained may be assigned an object class, often Keter, but in some articles Uncontained is used in place of an object class to emphasise that ongoing effort is required to establish or restore containment.");
-
-CREATE TABLE secondary_class (
-    id INTEGER AUTOINCREMENT PRIMARY KEY,
+CREATE TABLE secondary_classes (
+    id INTEGER PRIMARY KEY,
     name TEXT NOT NULL, -- eg. Thaumiel, Appolyion, ect.
-    -- no description, file ref
     )
 
-INSERT INTO secondary_class (name, description)
-VALUES ("", "");
-
-CREATE TABLE disruption_class (
+CREATE TABLE disruption_classes (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL, -- eg. Dark, Vlam, ect.
-    -- no description, file ref
     )
 
-INSERT INTO disruption_class (name)
-VALUES ("Amida");
-
-CREATE TABLE risk_class (
+CREATE TABLE risk_classes (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL, -- eg. Notice, Danger, ect.
-    -- no description, file ref
     )
-
-INSERT INTO risk_class (name)
-VALUES ("Critical");
 
 CREATE TABLE titles (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL, -- title (eg. site director, junior researcher, O5 council member)
-    -- no description, file ref
     )
 
-INSERT INTO titles (name)
-VALUES ("O5 Council Member");
-
-CREATE TABLE external_files (
-    id INTEGER PRIMARY KEY,
-    file_path TEXT NOT NULL,
-    associated_id INTEGER NOT NULL, -- link to scp/user/mtf/site
-    last_modified DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-
-CREATE TABLE commands (
-    command TEXT NOT NULL, -- eg. help, access, edit, ect
-    description TEXT NOT NULL -- a description of what the command does
-    )
-
-
-Deepwell folder structure: **Use md instead of txt**
+/*
+Deepwell folder structure:
 deepwell
   ├─ SCiPNET.db
+  ├─ descs
+  │ ├─ clearance_levels
+	│ │ ├─ 1.md # wikidot description of clearance level, matched with id
+  │ │ ├─ 2.md
+  │ │ ├─ ...
+  │ ├─ containment_classes
+	│ │ ├─ 1.md # same as clearance_levels
+  │ │ ├─ ...
+  │ ├─ disruption_classes
+  │ │ ├─ ...
+  │ ├─ risk_classes
+  │ │ ├─ ...
+  │ ├─ secondary_classes
+  │ │ ├─ ...
+  │ ├─ titles
+  │ │ ├─ ...
 	├─ scps
-  │ ├─ 1 # when displaying, show leading 0's for min len of 3 digits
+  │ ├─ 001
 	│ │ ├─ cp.md # containment procedures with less chars
 	│ │ ├─ desc.md # description
 	│ │ ├─ addenda
@@ -142,13 +124,14 @@ deepwell
 	│ │ │ └─ 1.md
 	│ │ └─ hist_descs # past descriptions, updates when file changes (if still same scp) for narrative
 	│ │   └─ 1.md
-  │ └─ 2
+  │ └─ 002
   │   └─ # same structure as 001
 	├─ sites
   │ ├─ # site name, from deepwell
 	│ │ ├─ desc.md # site description
 	│ │ ├─ loc.md # site location
-	│ │ └─ security.md # site security details: Area monitoring (move to deepwell?), any others?
+	│ │ └─ security.md # site security details: Area monitoring (move to deepwell?)
+	│ │ └─ dossier.md # site dossier, any others?
   │ └─ # other sites
 	├─ mtfs
   │ ├─ 1 # mtf id from deepwell
@@ -159,15 +142,36 @@ deepwell
 	└─ users # any files associated with users
     ├─ 1 # uid from deepwell
 	  │ ├─ projs.md # user projects, eg assigned scps, roles there, ect
-	  │ └─ standing.md # disciplinary history (out of clearance file access)
+	  │ └─ standing.md # disciplinary history (out of clearance file access, ect)
     └─ # other users
 
 └─ ├─ │
 
-In addition to the sqlite database, there will be the following files:
-Users may have text files (format: users/{id}.md) with additional notes (if necessary, likely not)
-Each SCP will have a folder (format: scps/{id}) with containment procedures, description, and addenda (if applicable) in seperate text files
-MTF's will have a text file (format: mtfs/{id}.md) with their task force mission and operation history
-Sites will have a text file (format: sites/{id}.md) with a description and location (coordinates and place: eg Paris, France - 12.35463, 54.76854)
-
-Indexes:
+Indexes: All reccomended by ChatGPT. Tip:
+ALways index foreign keys for joins
+*/
+-- user indexes
+CREATE INDEX idx_users_name ON users(name)
+CREATE INDEX idx_users_clearance_level_id ON users(clearance_level_id)
+CREATE INDEX idx_users_site_id ON users(site_id)
+CREATE INDEX idx_users_title_id ON  users(title_id)
+-- scp indexes
+CREATE INDEX idx_scps_classification_level_id ON scps(classification_level_id);
+CREATE INDEX idx_scps_containment_class_id ON scps(containment_class_id);
+CREATE INDEX idx_scps_site_responsible_id ON scps(site_responsible_id);
+CREATE INDEX idx_scps_assigned_task_force_id ON scps(assigned_task_force_id);
+CREATE INDEX idx_scps_archived ON scps(archived);
+-- mtf index
+CREATE INDEX idx_mtfs_leader ON mtfs(leader);
+-- site index
+CREATE INDEX idx_sites_director ON sites(director);
+-- audit log indexes
+CREATE INDEX idx_audit_user_id ON audit_log(user_id);
+CREATE INDEX idx_audit_timestamp ON audit_log(timestamp);
+-- helper table indexes
+CREATE INDEX idx_clearance_levels_name ON clearance_levels(name);
+CREATE INDEX idx_containment_class_name ON containment_class(name);
+CREATE INDEX idx_secondary_class_name ON secondary_class(name);
+CREATE INDEX idx_disruption_class_name ON disruption_class(name);
+CREATE INDEX idx_risk_class_name ON risk_class(name);
+CREATE INDEX idx_titles_name ON titles(name);
