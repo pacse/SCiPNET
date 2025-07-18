@@ -283,6 +283,120 @@ def created_f(f_type: str) -> None:
         "",
         f"{f_type} INITIALIZED",
         f"Logged to Overwatch Command at {timestamp()}",
+    ])
+
+
+def acs_bar(scp_info: SCP) -> None:
+    '''
+    prints a ACS header for an scp article\n
+    art by ChatGPT
+    '''
+    print_lines([
+    "┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐",
+    f"│{f'Item #: SCP-{scp_info.id}':^58}||{f'Classification Level: {scp_info.classification_level}':^58}|",
+    "├──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤",
+    f"│{f'Containment Class: {scp_info.containment_class}':^58}||{f'Disruption Class: {scp_info.disruption_class}':^58}|",
+    f"│{f'Secondary Class: {scp_info.secondary_class}':^58}||{f'Risk Class: {scp_info.risk_class}':^58}|",
+    f"├──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤",
+    f"│{f'Site Responsible: {scp_info.site_responsible_id}':^58}||{f'Assigned Task Force: {scp_info.assigned_task_force_name}':^58}|",
+    "└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘",
+    ])
+
+def display_scp(response: dict[str, Unknown], console: Console) -> None:
+    '''
+    Displays a scp after requested by user
+    '''
+    scp_info = init_scp(response["scp_info"]) #TODO: Move server side
+    descs: dict[str, str] = response["descs"]
+    SCPs: dict[str, str] = response["SCPs"]
+    addenda: dict[str, str] = response["addenda"]
+
+    # print scp_info
+    acs_bar(scp_info)
+    print() # space between
+
+    # print Special Containment Procedures
+    md = Markdown(f"## Special Containment Procedures:\n\n{SCPs['main.md']}")
+    console.print(md)
+
+    # print description
+    md = Markdown(f"## Description:\n\n{descs['main.md']}")
+    console.print(md)
+
+    # allow other file showing
+    if addenda:
+        a_names: list[str] = [key.replace(".md","") for key in addenda.keys()]
+    else:
+        a_names = []
+    desc_names: list[str] = [key.replace(".md","") for key in descs.keys()]
+    SCP_names: list[str] = [key.replace(".md","") for key in SCPs.keys()]
+
+    while True: # always offer more addenda after file access
+
+        # make type checking happy
+        i = 0
+        j = 0
+        k = 0
+        print("Display additional addenda?")
+        # first, addenda
+        for i, name in enumerate(a_names):
+            print(f"{i}: {unquote(name)}") # name is fname, so quoted
+        
+        # then descs
+        if len(desc_names) > 1: # ensure there are other descs
+            for j, name in enumerate(desc_names, 1):
+                # skip main
+                if name == "main":
+                    continue
+                # continue indexing from i
+                print(f"{j+i}: {unquote(name)}")
+
+        # finally SCPs
+        if len(SCP_names) > 1:
+            for k, name in enumerate(SCP_names):
+                if name == "main":
+                    continue
+                # continue indexing
+                print(f"{k+j+i}: {unquote(name)}")
+
+        print("C: close file")
+
+        inp = input("> ")
+
+        # process decesion
+        try:
+            if inp.upper() == "C":
+                return
+            else:
+                # what are they accessing
+                idx = int(inp)
+
+                # addenda?
+                if idx <= i:
+                    # access file
+                    name = a_names[idx]
+                    md = Markdown(f"## {unquote(name)}\n\n{addenda[name]}")
+                    console.print(md)
+                    # don't offer it again
+                    a_names.pop(idx)
+                
+                # desc?
+                elif idx <= j+i:
+                    # access file
+                    name = desc_names[idx-i-1]
+                    md = Markdown(f"## {unquote(name)}\n\n{addenda[name]}")
+                    console.print(md)
+                    # don't offer it again
+                    a_names.remove(name)
+
+                # SCP?
+                elif idx <= k+j+i:
+                    # access file
+                    name = SCP_names[idx-i-j-1]
+                    md = Markdown(f"## {unquote(name)}\n\n{addenda[name]}")
+                    console.print(md)
+                    # don't offer it again
+                    a_names.remove(name)
 
         except ValueError | IndexError:
             print(f"INVALID CHOICE: {inp!r}")
