@@ -188,3 +188,101 @@ def granted(file: str) -> None:
         f"FILE_REF: {file} ACCESS GRANTED",
         f"Logged to Overwatch Command at {timestamp()}",
     ])
+
+
+def create_f(f_type: str) -> None:
+    '''
+    Prints a simple message for file creation\n
+    art by ChatGPT
+    '''
+    print_lines([
+        "",
+        "╔══════════════════════════════╗",
+        "║         FILE CREATION        ║",
+        "╚══════════════════════════════╝",
+        "",
+        f"CREATE {f_type}",
+    ])
+
+def clearance_denied(needed_c: int, usr_c: int) -> None:
+    '''
+    Tells the usr they have insufficient clearance for an operation\n
+    art by ChatGPT
+    '''
+    print_lines([
+        "╔══════════════════════════════╗",
+        "║     INSUFFICIENT CLEARANCE   ║",
+        "╚══════════════════════════════╝",
+        ""
+        f"CLEARANCE {get_name('clearance_levels', needed_c).upper()} REQUIRED",
+        f"(YOU ARE CLEARANCE {get_name('clearance_levels', usr_c).upper()})",
+        f"Logged to Overwatch Command at {timestamp()}",
+    ])
+
+def invalid_f_type(f_type: str) -> None:
+    '''
+    Tells a user that {f_type} is not a valid f_type
+    '''
+    print_lines([
+        "╔══════════════════════════════╗",
+        f"║{'INVALID FILE TYPE':^30}║",
+        "╚══════════════════════════════╝",
+        ""
+        f"{f_type.upper()} IS NOT A VALID FILE TYPE",
+        f"Logged to Overwatch Command at {timestamp()}",
+    ])
+
+def invalid_f_data() -> None:
+    '''
+    Tells a user that the file data is invalid
+    '''
+    print_lines([
+        "╔════════════════════════════════════════╗",
+        "║            INVALID FILE DATA           ║",
+        "╚════════════════════════════════════════╝",
+        "",
+        f"Logged to Overwatch Command at {timestamp()}",
+    ])
+
+def no_data_recvd() -> None:
+    '''
+    Tells a user that the server received no data\n
+    Art by ChatGPT
+    '''
+    print_lines([
+        "╔════════════════════════════════════════╗",
+        f"║{'SERVER RECEIVED NO DATA':^40}║",
+        "╚════════════════════════════════════════╝",
+        "",
+        "CONTACT YOUR SITE NETWORK ADMINISTRATOR IF ISSUES PERSIST",
+        f"Logged to Overwatch Command at {timestamp()}",
+    ])
+
+def no_response() -> None:
+    '''
+    Tells usr that no response was received from the deepwell\n
+    art by ChatGPT, formatting by me
+    '''
+    print_lines([
+        "",
+        "╔════════════════════════════════════════╗",
+        f"║{'ERROR: NO RESPONSE FROM':^40}║",
+        "║                DEEPWELL                ║",
+        "╚════════════════════════════════════════╝",
+        "",
+        "PLEASE TRY AGAIN",
+        "CONTACT YOUR SITE NETWORK ADMINISTRATOR IF ISSUES PERSIST",
+        f"Logged to Overwatch Command at {timestamp()}",
+    ])
+
+def created_f(f_type: str) -> None:
+    print_lines([
+        "╔══════════════════════════════╗",
+        "║            CREATED           ║",
+        "╚══════════════════════════════╝",
+        "",
+        f"{f_type} INITIALIZED",
+        f"Logged to Overwatch Command at {timestamp()}",
+
+        except ValueError | IndexError:
+            print(f"INVALID CHOICE: {inp!r}")
