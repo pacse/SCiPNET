@@ -1,0 +1,242 @@
+'''
+Client side utility functions
+'''
+import socket
+
+from .art import printc, expunged, redacted, granted, display_scp, no_response
+from .art import create_f, created_f, clearance_denied, invalid_f_type
+from .art import invalid_f_data, no_data_recvd
+from .CSsocket import ADDR, send, recv, decode
+
+from rich.console import Console # for typedefing
+
+def conn_to_server() -> socket.socket:
+    '''
+    Establishes connection to server
+    '''
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect(ADDR) # connect to server
+    print("Connected . . .")
+    return s
+
+
+def create(server: socket.socket, f_type: str, c_lvl: int) -> None:
+    '''
+    Adds a {type} entry to the deepewell
+    '''
+
+    # warn usr actions are logged
+    printc("WARNING: ACTIONS ARE LOGGED")
+
+    if input("Continue? (y/n)\n>>>").lower() != "y":
+        return
+
+    # Send server create request
+    send(server, f"CREATE {f_type}")
+
+    # get response
+    response = recv(server)
+
+    # check for errors
+    if not response: # ensure we have data
+        no_response()
+        return
+
+    response = decode(response)
+    
+    if len(response) == 3: # clearance error
+        clearance_denied(response[1], response[2])
+        return
+    
+    elif len(response) == 2: # invalid f-type
+        invalid_f_type(response[1])
+    
+    elif response == "RENDER": # all clear
+        create_f(f_type)
+    
+    # get necessary info for creation
+    create_info = recv(server)
+
+    if not create_info:
+        no_response()
+        return
+    
+    create_info = decode(create_info)
+
+    # get file data from usr
+    file = {}
+
+    if f_type == "SCP":
+        # scp_id
+        file["id"] = int(input(f"ID (next id: {create_info['id']})\n>>>"))
+        
+        # show available classification lvls
+        printc("Classification Levels:")
+        for c_level in create_info["clearance_levels"]:
+            print(f"{c_level['id']} - {c_level['name']}")
+
+        # get file classification lvl
+        file["classification_level_id"] = int(input("Classification Level (id)\n>>> "))
+
+        # show available containment classes
+        printc("Containment Classes:")
+        for c_class in create_info["containment_classes"]:
+            print(f"{c_class['id']} - {c_class['name']}")
+
+        # get file containment class
+        file["containment_class_id"] = int(input("Containment Class (id)\n>>> "))
+
+        # show available secondary classes
+        printc("Secondary Classes:")
+        for s_class in create_info["secondary_classes"]:
+            print(f"{s_class['id']} - {s_class['name']}")
+        
+        # get file secondary class
+        file["secondary_class_id"] = int(input("Secondary Class (id)\n>>> "))
+
+        # show available disruption classes
+        printc("Disruption Classes:")
+        for d_class in create_info["disruption_classes"]:
+            print(f"{d_class['id']} - {d_class['name']}")
+
+        # get file disruption class
+        file["disruption_class_id"] = int(input("Disruption Class (id)\n>>> "))
+
+
+        # show available risk classes
+        printc("Risk Classes:")
+        for r_class in create_info["risk_classes"]:
+            print(f"{r_class['id']} - {r_class['name']}")
+
+        # get file risk class
+        file["risk_class_id"] = int(input("Risk Class (id)\n>>> "))
+
+        print()
+        # get site responsible
+        file["site_responsible_id"] = int(input("Site Responsible (id)\n>>> "))
+        print()
+        # get assigned task force
+        file["atf_id"] = input("Assigned Task Force (id)\n>>> ")
+        if not file["atf_id"]: # if no atf, set to None
+            file["atf_id"] = "None"
+        else:
+            file["atf_id"] = int(file["atf_id"])
+        print()
+        # get special containment procedures
+        file["SCPs"] = input("Special Containment Procedures\n>>> ")
+        print()
+        # get description
+        file["desc"] = input("Description\n>>> ")
+        print()
+        # TODO: Handle addenda and multi descs/SCPs
+        
+    elif f_type == "MTF":
+        file["name"] = input("MTF Name (eg. Epsilon-6)\n>>> ")
+        print()
+        file["nickname"] = input("MTF Nickname (eg. Village Idiots)\n>>> ")
+        print()
+        file["leader"] = int(input("MTF Leader (user id)\n>>> "))
+        print()
+        file["desc"] = input("MTF Description\n>>> ")
+        # TODO: Handle ect files
+    
+    elif f_type == "SITE":
+        file["name"] = input("Site Name (eg. Humanoid Containment Site-06-3)\n>>> ")
+        print()
+        file["director"] = int(input("Site Director (id)\n>>> "))
+        print()
+        file["loc"] = input("Location (eg. Lorraine, Grand Est, France | 48.723° N, 6.264° E)\n>>> ")
+        print()
+        file["desc"] = input("Site Description\n>>> ")
+        print()
+        file["dossier"] = input("Site Dossier (Enter 'None' if not applicable)\n>>> ")
+
+    elif f_type == "USER":
+        file["name"] = input("Name\n>>> ")
+        print()
+        file["password"] = input("Password\n>>> ")
+        print()
+
+        # show available clearance lvls
+        printc("Clearance Levels:")
+        for c_level in create_info["clearance_levels"]:
+            print(f"{c_level['id']} - {c_level['name']}")
+        
+        # get clearance level
+        file["clearance_level_id"] = int(input(f"Clearance Level (max: {c_lvl-1 if c_lvl < 6 else 6})\n>>> "))
+
+        print()
+
+        # show available titles
+        printc("Titles:")
+        for title in create_info["titles"]:
+            print(f"{title['id']} - {title['name']}")
+
+        # get title
+        file["title_id"] = int(input("Title (id)\n>>> "))
+        print()
+        file["site_id"] = int(input("Assigned Site (id)\n>>> "))
+        print()
+        file["phrase"] = input("Override Phrase\n>>> ") if file["clearance_level_id"] >= 3 else "None"
+        print()
+
+    # send to server
+    send(server, file)
+
+    # check for all clear
+    all_clear = recv(server)
+
+    if not all_clear:
+        no_response()
+        return
+    
+    all_clear = decode(all_clear)
+
+    if all_clear == "INVALID FILE DATA":
+        invalid_f_data()
+
+    elif all_clear == "NO DATA RECEIVED":
+        no_data_recvd()
+
+    elif all_clear == "CREATED":
+        created_f(f_type)
+
+def access(server: socket.socket, console: Console, type: str, file: str) -> None:
+    if type == "SCP":
+        print(f"Requesting access to file SCP-{file}. . .")
+        send(server, f"ACCESS SCP {file}")
+        response = recv(server)
+
+        if not response: # no data, some error happened
+            printc("[ERROR]: NO RESPONSE FROM DEEPWELL")
+            server.close()
+            return
+        
+        # decode
+        response = decode(response)
+        if response["status"] == "EXPUNGED":
+            expunged(file)
+        elif response["status"] == "REDACTED":
+            redacted(file, response["f_classification"], response["usr_clearance"])
+        elif response["status"] == "GRANTED":
+            granted(file)
+            display_scp(response, console)
+        else:
+            printc("[ERROR]")
+            printc("INVALID RESPONSE FROM SERVER")
+
+    elif type == "MTF":
+        # TODO
+        print("NOT YET IMPLEMENTED")
+    elif type == "SITE":
+        # TODO
+        print("NOT YET IMPLEMENTED")
+    elif type == "USER":
+        # TODO
+        print("NOT YET IMPLEMENTED") 
+    elif type == "SITE":
+        # TODO
+        print("NOT YET IMPLEMENTED")
+    else:
+        # TODO: Better message
+        printc(f"INVALID: {type!r}")
