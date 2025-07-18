@@ -8,7 +8,7 @@ from dataclasses import asdict
 from urllib.parse import quote, unquote
 
 from .sql import db, User, init_usr, log_event, next_id, get_id
-from .CSsocket import send, recv, decode
+from .socket import send, recv, decode
 
 # enable/disable debug messages
 DEBUG = True

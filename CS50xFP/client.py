@@ -9,7 +9,7 @@ from rich.markdown import Markdown
 
 from utils import art
 from utils.sql import init_usr
-from utils.CSsocket import decode, recv, send
+from CS50xFP.utils.socket import decode, recv, send
 
 from utils.basic import clear
 import utils.client as client

@@ -6,7 +6,7 @@ import socket
 from .art import printc, expunged, redacted, granted, display_scp, no_response
 from .art import create_f, created_f, clearance_denied, invalid_f_type
 from .art import invalid_f_data, no_data_recvd
-from .CSsocket import ADDR, send, recv, decode
+from .socket import ADDR, send, recv, decode
 
 from rich.console import Console # for typedefing
 

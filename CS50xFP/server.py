@@ -6,7 +6,7 @@ import socket
 from threading import active_count, Thread
 
 from utils.server import handle_usr
-from utils.CSsocket import ADDR
+from CS50xFP.utils.socket import ADDR
 
 def main():
     # TODO: Validate
