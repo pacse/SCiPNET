@@ -86,6 +86,7 @@ def login(usr: User) -> None:
 
     if title == "O5 Council Member":
         lines = [
+            "",
             reused2,
             reused1,
             "////" + f"{'<< O5 AUTHORIZATION VERIFIED >>':^112}" + "////",
@@ -98,10 +99,12 @@ def login(usr: User) -> None:
             "////" + f"{'SYSTEM STATUS: OPERATIONAL | DEEPWELL CHANNEL ENCRYPTED':^112}" + "////",
             reused1,
             reused2,
+            "",
         ]
 
     elif title == "Site Director":
         lines = [
+            "",
             reused2,
             reused1,
             "////" + f"{'<< DIRECTOR AUTHORIZATION VERIFIED >>':^112}" + "////",
@@ -114,10 +117,12 @@ def login(usr: User) -> None:
             "////" + f"{'SYSTEM STATUS: OPERATIONAL | DEEPWELL CHANNEL ENCRYPTED':^112}" + "////",
             reused1,
             reused2,
+            "",
         ]
 
     elif title == "Administrator":
         lines = [
+            "",
             reused2,
             reused1,
             "////" + f"{'<< ADMINISTRATOR AUTHORIZATION VERIFIED >>':^112}" + "////",
@@ -130,12 +135,15 @@ def login(usr: User) -> None:
             "////" + f"{'SYSTEM STATUS: OPERATIONAL | ENCLAVE MODE ACTIVE':^112}" + "////",
             reused1,
             reused2,
+            "",
         ]
 
     else:
         lines = [
+            "",
             f"Welcome back, {title} {usr.name}",
             f"(Clearance Level {usr.clearance_level_id} - {get_name('clearance_levels', usr.clearance_level_id)})"
+            "",
         ]
 
     for line in lines:
@@ -157,6 +165,7 @@ def redacted(file: str, file_classification: int, clearance: int) -> None:
         f"CLEARANCE {get_name('clearance_levels', file_classification).upper()} REQUIRED",
         f"(YOU ARE CLEARANCE {get_name('clearance_levels', clearance).upper()})",
         f"Logged to Overwatch Command at {timestamp()}",
+        "",
     ])
 
 def expunged(file: str) -> None:
@@ -172,6 +181,7 @@ def expunged(file: str) -> None:
         "",
         f"FILE_REF: {file} NOT FOUND",
         f"Logged to Overwatch Command at {timestamp()}",
+        "",
     ])
 
 def granted(file: str) -> None:
@@ -187,6 +197,7 @@ def granted(file: str) -> None:
         "",
         f"FILE_REF: {file} ACCESS GRANTED",
         f"Logged to Overwatch Command at {timestamp()}",
+        "",
     ])
 
 
@@ -201,22 +212,25 @@ def create_f(f_type: str) -> None:
         "║         FILE CREATION        ║",
         "╚══════════════════════════════╝",
         "",
-        f"CREATE {f_type}",
+        f"{f_type}",
+        "",
     ])
 
 def clearance_denied(needed_c: int, usr_c: int) -> None:
     '''
-    Tells the usr they have insufficient clearance for an operation\n
+    Tells the usr they have insufficient clearance for file creation\n
     art by ChatGPT
     '''
     print_lines([
+        "",
         "╔══════════════════════════════╗",
         "║     INSUFFICIENT CLEARANCE   ║",
         "╚══════════════════════════════╝",
         ""
-        f"CLEARANCE {get_name('clearance_levels', needed_c).upper()} REQUIRED",
+        f"CLEARANCE {get_name('clearance_levels', needed_c).upper()} REQUIRED TO CREATE FILE",
         f"(YOU ARE CLEARANCE {get_name('clearance_levels', usr_c).upper()})",
         f"Logged to Overwatch Command at {timestamp()}",
+        "",
     ])
 
 def invalid_f_type(f_type: str) -> None:
@@ -224,12 +238,14 @@ def invalid_f_type(f_type: str) -> None:
     Tells a user that {f_type} is not a valid f_type
     '''
     print_lines([
+        "",
         "╔══════════════════════════════╗",
         f"║{'INVALID FILE TYPE':^30}║",
         "╚══════════════════════════════╝",
         ""
         f"{f_type.upper()} IS NOT A VALID FILE TYPE",
         f"Logged to Overwatch Command at {timestamp()}",
+        "",
     ])
 
 def invalid_f_data() -> None:
@@ -237,11 +253,13 @@ def invalid_f_data() -> None:
     Tells a user that the file data is invalid
     '''
     print_lines([
+        "",
         "╔════════════════════════════════════════╗",
         "║            INVALID FILE DATA           ║",
         "╚════════════════════════════════════════╝",
         "",
         f"Logged to Overwatch Command at {timestamp()}",
+        "",
     ])
 
 def no_data_recvd() -> None:
@@ -250,12 +268,14 @@ def no_data_recvd() -> None:
     Art by ChatGPT
     '''
     print_lines([
+        "",
         "╔════════════════════════════════════════╗",
         f"║{'SERVER RECEIVED NO DATA':^40}║",
         "╚════════════════════════════════════════╝",
         "",
         "CONTACT YOUR SITE NETWORK ADMINISTRATOR IF ISSUES PERSIST",
         f"Logged to Overwatch Command at {timestamp()}",
+        "",
     ])
 
 def no_response() -> None:
@@ -273,16 +293,19 @@ def no_response() -> None:
         "PLEASE TRY AGAIN",
         "CONTACT YOUR SITE NETWORK ADMINISTRATOR IF ISSUES PERSIST",
         f"Logged to Overwatch Command at {timestamp()}",
+        "",
     ])
 
 def created_f(f_type: str) -> None:
     print_lines([
+        "",
         "╔══════════════════════════════╗",
         "║            CREATED           ║",
         "╚══════════════════════════════╝",
         "",
         f"{f_type} INITIALIZED",
         f"Logged to Overwatch Command at {timestamp()}",
+        "",
     ])
 
 
@@ -292,6 +315,7 @@ def acs_bar(scp_info: SCP) -> None:
     art by ChatGPT
     '''
     print_lines([
+    "",
     "┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐",
     f"│{f'Item #: SCP-{scp_info.id}':^58}||{f'Classification Level: {scp_info.classification_level}':^58}|",
     "├──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤",
@@ -300,6 +324,7 @@ def acs_bar(scp_info: SCP) -> None:
     f"├──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤",
     f"│{f'Site Responsible: {scp_info.site_responsible_id}':^58}||{f'Assigned Task Force: {scp_info.assigned_task_force_name}':^58}|",
     "└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘",
+    "",
     ])
 
 def display_scp(response: dict[str, Unknown], console: Console) -> None:
@@ -313,7 +338,6 @@ def display_scp(response: dict[str, Unknown], console: Console) -> None:
 
     # print scp_info
     acs_bar(scp_info)
-    print() # space between
 
     # print Special Containment Procedures
     md = Markdown(f"## Special Containment Procedures:\n\n{SCPs['main.md']}")

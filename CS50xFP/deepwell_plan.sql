@@ -156,22 +156,22 @@ CREATE INDEX idx_users_clearance_level_id ON users(clearance_level_id)
 CREATE INDEX idx_users_site_id ON users(site_id)
 CREATE INDEX idx_users_title_id ON  users(title_id)
 -- scp indexes
-CREATE INDEX idx_scps_classification_level_id ON scps(classification_level_id);
-CREATE INDEX idx_scps_containment_class_id ON scps(containment_class_id);
-CREATE INDEX idx_scps_site_responsible_id ON scps(site_responsible_id);
-CREATE INDEX idx_scps_assigned_task_force_id ON scps(assigned_task_force_id);
-CREATE INDEX idx_scps_archived ON scps(archived);
+CREATE INDEX idx_scps_classification_level_id ON scps(classification_level_id)
+CREATE INDEX idx_scps_containment_class_id ON scps(containment_class_id)
+CREATE INDEX idx_scps_site_responsible_id ON scps(site_responsible_id)
+CREATE INDEX idx_scps_assigned_task_force_id ON scps(assigned_task_force_id)
+CREATE INDEX idx_scps_archived ON scps(archived)
 -- mtf index
-CREATE INDEX idx_mtfs_leader ON mtfs(leader);
+CREATE INDEX idx_mtfs_leader ON mtfs(leader)
 -- site index
-CREATE INDEX idx_sites_director ON sites(director);
+CREATE INDEX idx_sites_director ON sites(director)
 -- audit log indexes
 CREATE INDEX idx_audit_user_id ON audit_log(user_id);
-CREATE INDEX idx_audit_timestamp ON audit_log(timestamp);
+CREATE INDEX idx_audit_timestamp ON audit_log(timestamp)
 -- helper table indexes
-CREATE INDEX idx_clearance_levels_name ON clearance_levels(name);
-CREATE INDEX idx_containment_class_name ON containment_class(name);
-CREATE INDEX idx_secondary_class_name ON secondary_class(name);
-CREATE INDEX idx_disruption_class_name ON disruption_class(name);
-CREATE INDEX idx_risk_class_name ON risk_class(name);
-CREATE INDEX idx_titles_name ON titles(name);
+CREATE INDEX idx_clearance_levels_name ON clearance_levels(name)
+CREATE INDEX idx_containment_class_name ON containment_class(name)
+CREATE INDEX idx_secondary_class_name ON secondary_class(name)
+CREATE INDEX idx_disruption_class_name ON disruption_class(name)
+CREATE INDEX idx_risk_class_name ON risk_class(name)
+CREATE INDEX idx_titles_name ON titles(name)

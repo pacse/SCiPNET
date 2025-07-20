@@ -6,7 +6,7 @@ import socket
 from .art import printc, expunged, redacted, granted, display_scp, no_response
 from .art import create_f, created_f, clearance_denied, invalid_f_type
 from .art import invalid_f_data, no_data_recvd
-from .socket import ADDR, send, recv, decode
+from .socket import ADDR, send, recv
 
 from rich.console import Console # for typedefing
 
@@ -28,7 +28,7 @@ def create(server: socket.socket, f_type: str, c_lvl: int) -> None:
     # warn usr actions are logged
     printc("WARNING: ACTIONS ARE LOGGED")
 
-    if input("Continue? (y/n)\n>>>").lower() != "y":
+    if input("Continue? (y/n)\n>>> ").lower() != "y":
         return
 
     # Send server create request
@@ -41,8 +41,6 @@ def create(server: socket.socket, f_type: str, c_lvl: int) -> None:
     if not response: # ensure we have data
         no_response()
         return
-
-    response = decode(response)
     
     if len(response) == 3: # clearance error
         clearance_denied(response[1], response[2])
@@ -61,72 +59,75 @@ def create(server: socket.socket, f_type: str, c_lvl: int) -> None:
         no_response()
         return
     
-    create_info = decode(create_info)
-
     # get file data from usr
     file = {}
 
     if f_type == "SCP":
         # scp_id
-        file["id"] = int(input(f"ID (next id: {create_info['id']})\n>>>"))
+        file["id"] = 3 #int(input(f"ID (next id: {create_info['id']}) >>> "))
         
         # show available classification lvls
         printc("Classification Levels:")
         for c_level in create_info["clearance_levels"]:
             print(f"{c_level['id']} - {c_level['name']}")
+        print()
 
         # get file classification lvl
-        file["classification_level_id"] = int(input("Classification Level (id)\n>>> "))
+        file["classification_level_id"] = 1 #int(input("Classification Level (id)\n>>> "))
 
         # show available containment classes
         printc("Containment Classes:")
         for c_class in create_info["containment_classes"]:
             print(f"{c_class['id']} - {c_class['name']}")
+        print()
 
         # get file containment class
-        file["containment_class_id"] = int(input("Containment Class (id)\n>>> "))
+        file["containment_class_id"] = 1 #int(input("Containment Class (id)\n>>> "))
 
         # show available secondary classes
         printc("Secondary Classes:")
         for s_class in create_info["secondary_classes"]:
             print(f"{s_class['id']} - {s_class['name']}")
+        print()
         
         # get file secondary class
-        file["secondary_class_id"] = int(input("Secondary Class (id)\n>>> "))
+        file["secondary_class_id"] = 0 #int(input("Secondary Class (id)\n>>> "))
 
         # show available disruption classes
         printc("Disruption Classes:")
         for d_class in create_info["disruption_classes"]:
             print(f"{d_class['id']} - {d_class['name']}")
+        print()
 
         # get file disruption class
-        file["disruption_class_id"] = int(input("Disruption Class (id)\n>>> "))
+        file["disruption_class_id"] = 1 #int(input("Disruption Class (id)\n>>> "))
 
 
         # show available risk classes
         printc("Risk Classes:")
         for r_class in create_info["risk_classes"]:
             print(f"{r_class['id']} - {r_class['name']}")
+        print()
 
         # get file risk class
-        file["risk_class_id"] = int(input("Risk Class (id)\n>>> "))
+        file["risk_class_id"] = 1 #int(input("Risk Class (id)\n>>> "))
 
         print()
         # get site responsible
-        file["site_responsible_id"] = int(input("Site Responsible (id)\n>>> "))
+        file["site_responsible_id"] = 1123 #int(input("Site Responsible (id)\n>>> "))
         print()
         # get assigned task force
-        file["atf_id"] = input("Assigned Task Force (id)\n>>> ")
+        file["atf_id"] = 1 #input("Assigned Task Force (id)\n>>> ")
         if not file["atf_id"]: # if no atf, set to None
             file["atf_id"] = "None"
         else:
             file["atf_id"] = int(file["atf_id"])
         print()
         # get special containment procedures
-        file["SCPs"] = input("Special Containment Procedures\n>>> ")
+        file["SCPs"] = "1" #input("Special Containment Procedures\n>>> ")
         print()
         # get description
-        file["desc"] = input("Description\n>>> ")
+        file["desc"] = "1" #input("Description\n>>> ")
         print()
         # TODO: Handle addenda and multi descs/SCPs
         
@@ -177,7 +178,7 @@ def create(server: socket.socket, f_type: str, c_lvl: int) -> None:
         print()
         file["site_id"] = int(input("Assigned Site (id)\n>>> "))
         print()
-        file["phrase"] = input("Override Phrase\n>>> ") if file["clearance_level_id"] >= 3 else "None"
+        file["override_phrase"] = input("Override Phrase\n>>> ") if file["clearance_level_id"] >= 3 else "None"
         print()
 
     # send to server
@@ -189,8 +190,7 @@ def create(server: socket.socket, f_type: str, c_lvl: int) -> None:
     if not all_clear:
         no_response()
         return
-    
-    all_clear = decode(all_clear)
+
 
     if all_clear == "INVALID FILE DATA":
         invalid_f_data()
@@ -213,7 +213,6 @@ def access(server: socket.socket, console: Console, type: str, file: str) -> Non
             return
         
         # decode
-        response = decode(response)
         if response["status"] == "EXPUNGED":
             expunged(file)
         elif response["status"] == "REDACTED":

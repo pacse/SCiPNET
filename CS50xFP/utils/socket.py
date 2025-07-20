@@ -3,7 +3,7 @@ Functions related to socket
 for both client and server
 '''
 import socket
-from json import dumps, loads
+from json import dumps, loads, JSONDecodeError
 from typing import Any
 from time import sleep
 
@@ -47,10 +47,19 @@ def send(conn: socket.socket, data: Any) -> None:
     sleep(WAITTIME)
     conn.sendall(d)
 
-def recv(conn: socket.socket) -> bytes:
+def recv(conn: socket.socket) -> Any | None:
     '''
-    Receives data from conn, returning decoded data
+    Receives data from conn\n
+    returns decoded data or None if no data is received
     '''
-    size = decode(conn.recv(RCVSIZE)) # size to recv
-    assert isinstance(size, int) # verify size type
-    return conn.recv(size) # return data
+    # try to get size
+    try:
+        size = decode(conn.recv(RCVSIZE)) # size to recv
+        assert isinstance(size, int) # verify size type
+        
+        # recv & decode data,
+        # returning data
+        return decode(conn.recv(size))
+    except JSONDecodeError:
+        # if we get an error, return none
+        return None

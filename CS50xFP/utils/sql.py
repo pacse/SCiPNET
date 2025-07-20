@@ -8,7 +8,6 @@ from typing import cast
 # Deepwell database connection
 db = SQL("sqlite:///deepwell/SCiPNET.db")
 
-# TODO: Depreicate
 def next_id(table: str) -> int:
     '''
     Get the next id in a table:
@@ -34,7 +33,7 @@ def get_id(table: str, name: str) -> int:
 
 # Log events in the audit log (eg. account creation, login, file access, file edit, ect.)
 def log_event(user_id: int, action: str, details: str = "") -> None:
-    db.execute("INSERT INTO audit_log (id, user_id, action, details) VALUES (?, ?, ?, ?)", next_id("audit_log"), user_id, action, details)
+    db.execute("INSERT INTO audit_log (user_id, action, details) VALUES (?, ?, ?)", user_id, action, details)
 
 ''' 
 Dataclasses for ease of
@@ -52,7 +51,7 @@ class User:
     clearance_level_id: int
     title_id: int
     site_id: int
-    phrase: str | None = None # not required for lower level personnel
+    override_phrase: str | None = None # not required for lower level personnel
 
 def init_usr(info: dict[str, str | int | None]) -> User:
     '''
@@ -67,7 +66,7 @@ def init_usr(info: dict[str, str | int | None]) -> User:
         cast(int, info["clearance_level_id"]),
         cast(int, info["title_id"]),
         cast(int, info["site_id"]),
-        cast(str, info["phrase"]) if info["phrase"] is not None else None
+        cast(str, info["override_phrase"]) if info["override_phrase"] is not None else None
       )
 
 

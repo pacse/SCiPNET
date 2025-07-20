@@ -6,7 +6,7 @@ import socket
 from threading import active_count, Thread
 
 from utils.server import handle_usr
-from CS50xFP.utils.socket import ADDR
+from utils.socket import ADDR
 
 def main():
     # TODO: Validate
@@ -20,10 +20,10 @@ def main():
         while True: # for each connection
             try:
                 conn, addr = server.accept() # accept it
-                print(f"Connection from {addr}\n")
+                print(f"Connection from {addr[0]}:{addr[1]}, Thread ID: {active_count() - 1}")
                 thread = Thread(target=handle_usr, args=(conn, addr, active_count() - 1)) # init thread with zero-indexed thread id
                 thread.start() # start thread
-                print(f"Active connections: {active_count()}")
+                print(f"Active connections: {active_count() - 1}")
             except KeyboardInterrupt:
                 print("Exiting")
                 return
