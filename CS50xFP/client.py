@@ -9,7 +9,7 @@ from rich.markdown import Markdown
 
 from utils import art
 from utils.sql import init_usr
-from CS50xFP.utils.socket import decode, recv, send
+from utils.socket import decode, recv, send
 
 from utils.basic import clear
 import utils.client as client
@@ -38,9 +38,6 @@ if __name__ == "__main__":
             art.printc("[ERROR]: NO RESPONSE FROM DEEPWELL")
             server.close()
             sys.exit()
-        
-        # we have data, decode it
-        result = decode(result)
 
         if DEBUG: # debug flag
             print(f"Result: {result}")
@@ -62,10 +59,10 @@ if __name__ == "__main__":
             action = split_request[0]
 
             if action == "CREATE": # usr wants to create a file
-                sucess = client.create(server, split_request[1], usr.clearance_level_id)
+                client.create(server, split_request[1], usr.clearance_level_id)
 
             elif action == "ACCESS": # usr wants to access a file
-                sucess = client.access(server, console, split_request[1], split_request[2])
+                client.access(server, console, split_request[1], split_request[2])
 
             elif action == "LOGOUT":
                 print("Logging out...")
