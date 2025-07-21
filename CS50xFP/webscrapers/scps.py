@@ -27,10 +27,10 @@ def handle_syntax(text: str) -> str:
     return done.replace("\u00A0", " ").replace("\u2026", "...")
 
 
-scp = "049"
+scp = 2
 
 # page to get
-url = f"https://scp-wiki.wikidot.com/scp-{scp}"
+url = f"https://scp-wiki.wikidot.com/scp-{scp:03d}"
 
 # get page content
 req = requests.get(url)
@@ -126,13 +126,13 @@ for tag in tags:
         #print(txt)
         text.append(txt)
 
-#'''
+'''
 with open("scp.txt", "w", encoding="utf-8") as f:
     for txt in text:
         f.write(f"{txt}\n")
 
 #sys.exit(0)
-#'''
+'''
 
 # vars to store what matter
 item_num = ""
@@ -239,7 +239,8 @@ for addendum in addenda:
 # === save ===
 
 # make dirs
-path_to_scp = f"C:/Users/packa/Documents/GitHub/SCiPNET/CS50xFP/deepwell/scps/{scp}" # change per device
+path_to_scp = f"C:/Users/packa/Documents/GitHub/SCiPNET/CS50xFP/deepwell/scps/{scp}" # home sys
+path_to_scp = f"C:/Users/User2/Documents/GitHub/SCiPNET/CS50xFP/deepwell/scps/{scp}" # school sys
 
 os.makedirs(path_to_scp, exist_ok=True) # create dir if it doesn't exist
 
@@ -268,7 +269,7 @@ for i, addendum in enumerate(addenda):
 console = Console()
 
 # print headings
-console.print(Markdown(f"# **Item #:** SCP-{scp}"))
+console.print(Markdown(f"# **Item #:** SCP-{scp:03d}"))
 console.print(Markdown(f"## **Object Class:** {obj_class}"))
 
 print() # separator
