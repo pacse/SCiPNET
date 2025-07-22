@@ -47,10 +47,10 @@ console.print(Markdown(f"## **Object Class:** {objclss}"))
 print() # separator
 
 # print SCPs
-console.print(Markdown(f"## **Special Containment Procedures:**\n{SCPs["main.md"]}"))
+console.print(Markdown(f"## **Special Containment Procedures:**\n{SCPs['main.md']}"))
 
 # print description
-console.print(Markdown(f"## **Description:**\n{descs["main.md"]}"))
+console.print(Markdown(f"## **Description:**\n{descs['main.md']}"))
 
 # print addenda
 if addenda:
