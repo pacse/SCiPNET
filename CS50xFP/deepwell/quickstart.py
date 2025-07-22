@@ -142,7 +142,7 @@ containment_class_id INTEGER NOT NULL,
 secondary_class_id INTEGER,
 disruption_class_id INTEGER,
 risk_class_id INTEGER,
-site_responsible_id INTEGER NOT NULL,
+site_responsible_id INTEGER,
 assigned_task_force_id INTEGER,
 status TEXT DEFAULT "active" CHECK(status IN ("active", "neutralized", "explained", "deleted")), -- Thanks ChatGPT for improving this from a bool :)
 

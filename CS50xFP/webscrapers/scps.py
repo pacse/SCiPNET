@@ -24,7 +24,7 @@ def handle_syntax(text: str) -> str:
     done = "\n".join(result) # concatenate
 
     # replace nbsp and ellipsis in test
-    return done.replace("\u00A0", " ").replace("\u2026", "...")
+    return done.replace("\u00A0", " ").replace("\u2026", "...").replace("", "") # TODO: superscript
 
 
 scp = 2

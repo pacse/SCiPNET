@@ -440,7 +440,6 @@ def handle_usr(client: socket.socket, addr, thread_id: int) -> None:
                                     SCPs[name] = f.read()
 
                             # addenda 
-                            # TODO: Get dynamically
                             addenda = {}
                             a_names = os.listdir(f"{path}/addenda")
                             for name in a_names:
