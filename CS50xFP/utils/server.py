@@ -302,8 +302,19 @@ def create(client: socket.socket, f_type: str, thread_id: int, usr: User) -> Non
     send(client, "CREATED")
     print("created file") # debug
 
-def access():
-    pass
+def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_id: int, usr: User) -> None:
+    # convert name to id
+    if isinstance(f_identifier, str):
+        try:
+            f_identifier = get_id(f"{f_type.lower()}s", f_identifier)
+        except IndexError:
+            send(client,"EXPUNGED")
+            return
+
+
+    # try to get file from sql database
+    try:
+        data = db.execute(f"SELECT * FROM {f_type.lower()}s")
 
 
 def handle_usr(client: socket.socket, addr, thread_id: int) -> None:
@@ -346,7 +357,7 @@ def handle_usr(client: socket.socket, addr, thread_id: int) -> None:
         
         if not valid:
             send(client, (False, None))
-            log_event(0, "login", f"Failed login attempt from {addr[0]}:{addr[1]} with id {split_data[1]!r} and password {split_data[2]!r}") # log to audit log TODO: Null usr
+            log_event(-1, "login", f"Failed login attempt from {addr[0]}:{addr[1]} with id {split_data[1]!r} and password {split_data[2]!r}") # log to audit log TODO: Null usr
             client.close()
             return
         else:
@@ -395,68 +406,7 @@ def handle_usr(client: socket.socket, addr, thread_id: int) -> None:
 
             #'''
             elif split_data[0] == "ACCESS":
-                if split_data[1] == "SCP":
-                    # query db for scp
-                    try:
-                        scp = db.execute("SELECT * FROM scps WHERE id = ?", int(split_data[2]))[0]
-                    # data[2] not int or nothing from db
-                    except (ValueError, IndexError):
-                        print("EXPUNGED")
-                        send(client, "EXPUNGED") # TODO: FIX EXPUNGED
-                    else:
-                        # check clearance
-                        if usr.clearance_level_id < scp["classification_level_id"]:
-                            # information for art.redacted()
-                            response = {
-                                "status":"REDACTED",
-                                "f_classification":scp['classification_level_id'],
-                                "usr_clearance":usr.clearance_level_id
-                            }
-                            print("REDACTED")
-                            print(usr.id)
-                            log_event(usr.id,
-                                      f"Attempted to access file SCP {split_data[2]}",
-                                      f"File is level {scp['classification_level_id']} restricted, usr has clearance level {usr.clearance_level_id}")
-                            send(client, response)
-                        else:
-                            # Usr can access SCP!!!
-                            
-                            # get external files
-                            path = f"./deepwell/scps/{data[2]}"
-
-                            # descriptions
-                            descs = {} # fname:data
-                            # get all files
-                            d_names = os.listdir(f"{path}/descs")
-                            for name in d_names:
-                                with open(f"{path}/descs/{name}") as f:
-                                    descs[name] = f.read()
-
-                            # SCPs
-                            SCPs = {}
-                            SCP_names = os.listdir(f"{path}/SCPs")
-                            for name in SCP_names:
-                                with open(f"{path}/SCPs/{name}") as f:
-                                    SCPs[name] = f.read()
-
-                            # addenda 
-                            addenda = {}
-                            a_names = os.listdir(f"{path}/addenda")
-                            for name in a_names:
-                                with open(f"{path}/addenda/{name}") as f:
-                                    addenda[name] = f.read()
-                            
-                            # Now we have all files, build response
-                            response = {
-                                "status":"GRANTED",
-                                "scp_info":scp,
-                                "descs":descs,
-                                "SCPs":SCPs,
-                                "addenda":addenda
-                            }
-                            # and send :)
-                            send(client, response)
-
+                access(client, cast(str,split_data[1]), split_data[2], thread_id, usr)
                 # TODO: Handle MTF Access
                 # TODO: Handle Site Access
                 # TODO: Handle User Access

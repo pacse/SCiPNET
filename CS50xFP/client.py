@@ -62,7 +62,7 @@ if __name__ == "__main__":
                 client.create(server, split_request[1], usr.clearance_level_id)
 
             elif action == "ACCESS": # usr wants to access a file
-                client.access(server, console, split_request[1], split_request[2])
+                client.access(server, console, split_request[1], "".join(split_request[2:]))
 
             elif action == "LOGOUT":
                 print("Logging out...")
