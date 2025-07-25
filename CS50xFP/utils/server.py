@@ -20,6 +20,12 @@ VALID_F_TYPES = [
     "USER",
 ]
 
+def valid_f_type(check: str) -> bool:
+    if check in VALID_F_TYPES:
+        return True
+    else:
+        return False
+
 def auth_usr(id: int, password: str) -> tuple[bool, User | None]:
     # TODO: Validate
     '''
@@ -44,7 +50,7 @@ def auth_usr(id: int, password: str) -> tuple[bool, User | None]:
 def create(client: socket.socket, f_type: str, thread_id: int, usr: User) -> None:
     
     # check if valid file type
-    if f_type not in VALID_F_TYPES:
+    if not valid_f_type(f_type):
         send(client, ["INVALID FILETYPE", f_type])
         log_event(usr.id,
                   "USR TRIED TO CREATE A INVALID FILE TYPE",
@@ -303,19 +309,68 @@ def create(client: socket.socket, f_type: str, thread_id: int, usr: User) -> Non
     print("created file") # debug
 
 def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_id: int, usr: User) -> None:
-    # convert name to id
-    if isinstance(f_identifier, str):
-        try:
-            f_identifier = get_id(f"{f_type.lower()}s", f_identifier)
-        except IndexError:
-            send(client,"EXPUNGED")
-            return
-
+    # check if valid file type
+    if not valid_f_type(f_type):
+        send(client, ["INVALID FILETYPE", f_type])
+        log_event(usr.id,
+                  "USR TRIED TO ACCESS A INVALID FILE TYPE",
+                  f"ATTEMPTED TYPE: {f_type}")
+        return
 
     # try to get file from sql database
     try:
-        data = db.execute(f"SELECT * FROM {f_type.lower()}s")
+        # get id for f_id if f_id is str
+        if isinstance(f_identifier, str):
+            f_identifier = get_id(f"{f_type.lower()}s", f_identifier)
+        
+        # get file
+        data = db.execute(f"SELECT * FROM {f_type.lower()}s WHERE id = ?", f_identifier)[0]
+    except IndexError:
+        send(client, "EXPUNGED")
+        log_event(usr.id,
+                  "USR TRIED TO ACCESS A EXPUNGED FILE",
+                  f"ATTEMPTED FILE: {f_type} {f_identifier}")
+        return
+    
+    # validate usr clearance
+    if f_type == "USER" and\
+    usr.clearance_level_id < data["clearance_level_id"]:
+        send(client, ["REDACTED", data["clearance_level_id"], usr.clearance_level_id])
+        log_event(usr.id,
+                  f"USR TRIED TO ACCESS USR {f_identifier} WITHOUT CLEARANCE",
+                  f"HAS CLEARANCE {usr.clearance_level_id}, NEEDS CLEARANCE {data['clearance_level_id']}")
+        return
+    
+    elif f_type == "SCP" and\
+    usr.clearance_level_id < data["classification_level_id"]:
+        
+        send(client, ["REDACTED", data["classification_level_id"], usr.clearance_level_id])
+        log_event(usr.id,
+                  f"USR TRIED TO ACCESS SCP {f_identifier} WITHOUT CLEARANCE",
+                  f"HAS CLEARANCE {usr.clearance_level_id}, NEEDS CLEARANCE {data['clearance_level_id']}")
+        return
+    
+    elif f_type == "SITE" and (
+    usr.clearance_level_id < 3 or
+    usr.site_id != f_identifier):
+    # site access requirements: 
+    # must work there OR
+    # must be over clearance level 3
+        send(client, ["REDACTED", 3, usr.clearance_level_id])
+        log_event(usr.id,
+                  f"USR TRIED TO ACCESS SITE {f_identifier} WITHOUT CLEARANCE",
+                  f"HAS CLEARANCE {usr.clearance_level_id}, NEEDS CLEARANCE 3")
+        return
 
+    # YAY!!! 🎉 
+    # We can build response
+    response = {"db_info":data}
+
+    # path to deepwell entry
+    path = f"C:/Users/User2/Documents/GitHub/SCiPNET/CS50xFP/deepwell/{f_type.lower()}s/{f_identifier}"
+    
+    if f_type == "SCP":
+        
 
 def handle_usr(client: socket.socket, addr, thread_id: int) -> None:
     '''
@@ -404,13 +459,8 @@ def handle_usr(client: socket.socket, addr, thread_id: int) -> None:
             if split_data[0] == "CREATE":  # usr wants to create a file
                 create(client, cast(str, split_data[1]), thread_id, usr)
 
-            #'''
             elif split_data[0] == "ACCESS":
                 access(client, cast(str,split_data[1]), split_data[2], thread_id, usr)
-                # TODO: Handle MTF Access
-                # TODO: Handle Site Access
-                # TODO: Handle User Access
-#'''
 
     except Exception as e:
         client.close() # close connection
