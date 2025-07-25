@@ -60,7 +60,7 @@ def startup() -> None:
     sp(uf(0, 1))
     printc("> Establishing encrypted tunnel to Deepwell Servers . . .")
     sp(uf(0, 1))
-    printc("> Syncing with Overwatch Command . . .")
+    printc("> Syncing with Recordkeeping And Information Security Administration (RAISA) . . .")
     sp(uf(0, 1))
     printc("> Validating cryptographic token . . .")
     sp(uf(0, 1))
@@ -164,7 +164,7 @@ def redacted(file: str, file_classification: int, clearance: int) -> None:
         f"FILE_REF: {file} REDACTED",
         f"CLEARANCE {get_name('clearance_levels', file_classification).upper()} REQUIRED",
         f"(YOU ARE CLEARANCE {get_name('clearance_levels', clearance).upper()})",
-        f"Logged to Overwatch Command at {timestamp()}",
+        f"Logged to RAISA at {timestamp()}",
         "",
     ])
 
@@ -180,7 +180,7 @@ def expunged(file: str) -> None:
         "╚══════════════════════════════╝",
         "",
         f"FILE_REF: {file} NOT FOUND",
-        f"Logged to Overwatch Command at {timestamp()}",
+        f"Logged to RAISA at {timestamp()}",
         "",
     ])
 
@@ -196,7 +196,7 @@ def granted(file: str) -> None:
         "╚══════════════════════════════╝",
         "",
         f"FILE_REF: {file} ACCESS GRANTED",
-        f"Logged to Overwatch Command at {timestamp()}",
+        f"Logged to RAISA at {timestamp()}",
         "",
     ])
 
@@ -229,7 +229,7 @@ def clearance_denied(needed_c: int, usr_c: int) -> None:
         ""
         f"CLEARANCE {get_name('clearance_levels', needed_c).upper()} REQUIRED TO CREATE FILE",
         f"(YOU ARE CLEARANCE {get_name('clearance_levels', usr_c).upper()})",
-        f"Logged to Overwatch Command at {timestamp()}",
+        f"Logged to RAISA at {timestamp()}",
         "",
     ])
 
@@ -244,7 +244,7 @@ def invalid_f_type(f_type: str) -> None:
         "╚══════════════════════════════╝",
         ""
         f"{f_type.upper()} IS NOT A VALID FILE TYPE",
-        f"Logged to Overwatch Command at {timestamp()}",
+        f"Logged to RAISA at {timestamp()}",
         "",
     ])
 
@@ -258,7 +258,7 @@ def invalid_f_data() -> None:
         "║            INVALID FILE DATA           ║",
         "╚════════════════════════════════════════╝",
         "",
-        f"Logged to Overwatch Command at {timestamp()}",
+        f"Logged to RAISA at {timestamp()}",
         "",
     ])
 
@@ -274,7 +274,7 @@ def no_data_recvd() -> None:
         "╚════════════════════════════════════════╝",
         "",
         "CONTACT YOUR SITE NETWORK ADMINISTRATOR IF ISSUES PERSIST",
-        f"Logged to Overwatch Command at {timestamp()}",
+        f"Logged to RAISA at {timestamp()}",
         "",
     ])
 
@@ -292,7 +292,7 @@ def no_response() -> None:
         "",
         "PLEASE TRY AGAIN",
         "CONTACT YOUR SITE NETWORK ADMINISTRATOR IF ISSUES PERSIST",
-        f"Logged to Overwatch Command at {timestamp()}",
+        f"Logged to RAISA at {timestamp()}",
         "",
     ])
 
@@ -304,7 +304,7 @@ def created_f(f_type: str) -> None:
         "╚══════════════════════════════╝",
         "",
         f"{f_type} INITIALIZED",
-        f"Logged to Overwatch Command at {timestamp()}",
+        f"Logged to RAISA at {timestamp()}",
         "",
     ])
 
@@ -331,7 +331,7 @@ def display_scp(response: dict[str, Unknown], console: Console) -> None:
     '''
     Displays a scp after requested by user
     '''
-    scp_info = init_scp(response["scp_info"]) #TODO: Move server side
+    scp_info = init_scp(response["scp_info"])
     descs: dict[str, str] = response["descs"]
     SCPs: dict[str, str] = response["SCPs"]
     addenda: dict[str, str] = response["addenda"]
