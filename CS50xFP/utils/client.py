@@ -233,9 +233,6 @@ def access(server: socket.socket, console: Console, type: str, file: str) -> Non
     elif type == "USER":
         # TODO
         print("NOT YET IMPLEMENTED") 
-    elif type == "SITE":
-        # TODO
-        print("NOT YET IMPLEMENTED")
     else:
         # TODO: Better message
-        printc(f"INVALID: {type!r}")
+        printc(f"INVALID F_TYPE: {type!r}")
