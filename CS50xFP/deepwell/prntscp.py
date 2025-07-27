@@ -3,7 +3,10 @@ from rich.markdown import Markdown
 from urllib.parse import unquote
 from cs50 import SQL
 import os
-import sys
+
+# disable markdown_it logging
+import logging
+logging.getLogger("markdown_it").setLevel(logging.WARNING)
 
 db = SQL("sqlite:///SCiPNET.db")
 
@@ -21,19 +24,19 @@ objclss = objclss[0]
 SCPs = {}
 SCP_names = os.listdir(f"{path}/SCPs")
 for name in SCP_names:
-    with open(f"{path}/SCPs/{name}", "r") as f:
+    with open(f"{path}/SCPs/{name}", "r", encoding="utf-8") as f:
         SCPs[name] = f.read()
 
 descs = {}
 desc_names = os.listdir(f"{path}/descs")
 for name in desc_names:
-    with open(f"{path}/descs/{name}", "r") as f:
+    with open(f"{path}/descs/{name}", "r", encoding="utf-8") as f:
         descs[name] = f.read()
 
 addenda = {}
 addenda_names = os.listdir(f"{path}/addenda")
 for name in addenda_names:
-    with open(f"{path}/addenda/{name}", "r") as f:
+    with open(f"{path}/addenda/{name}", "r", encoding="utf-8") as f:
         addenda[name] = f.read()
 
 
