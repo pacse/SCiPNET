@@ -24,8 +24,7 @@ def handle_syntax(text: str) -> str:
     done = "\n".join(result) # concatenate
 
     # replace nbsp and ellipsis in test
-    return done.replace("\u00A0", " ").replace("\u2026", "...").replace("", "") # TODO: superscript
-
+    return done.replace("\u00A0", " ").replace("\u2026", "...")
 
 scp = 2
 
@@ -239,6 +238,7 @@ for addendum in addenda:
 # === save ===
 
 # make dirs
+# TODO: dynamically get path to deepwell
 path_to_scp = f"C:/Users/packa/Documents/GitHub/SCiPNET/CS50xFP/deepwell/scps/{scp}" # home sys
 path_to_scp = f"C:/Users/User2/Documents/GitHub/SCiPNET/CS50xFP/deepwell/scps/{scp}" # school sys
 

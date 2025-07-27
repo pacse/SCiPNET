@@ -202,6 +202,7 @@ def create(server: socket.socket, f_type: str, c_lvl: int) -> None:
         created_f(f_type)
 
 def access(server: socket.socket, console: Console, type: str, file: str) -> None:
+    # TODO: remake to work with server.access()
     if type == "SCP":
         print(f"Requesting access to file SCP-{file}. . .")
         send(server, f"ACCESS SCP {file}")
