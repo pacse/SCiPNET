@@ -9,6 +9,10 @@ from random import uniform as uf
 from .basic import clear, timestamp, Unknown
 from .sql import init_scp, User, SCP, get_name
 
+# disable markdown_it logging
+import logging
+logging.getLogger("markdown_it").setLevel(logging.WARNING)
+
 ''' Validate terminal size '''
 try:
     SIZE = gts().columns
