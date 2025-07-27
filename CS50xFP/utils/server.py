@@ -3,9 +3,10 @@ Server side utility functions
 '''
 import os
 import socket
-from typing import cast
+from typing import cast, Final as constant
 from dataclasses import asdict
 from urllib.parse import quote, unquote
+from pathlib import Path
 
 from .sql import db, User, init_usr, log_event, get_id, next_id
 from .socket import send, recv
@@ -13,12 +14,17 @@ from .socket import send, recv
 # enable/disable debug messages
 DEBUG = True
 
+# valid file types (creatable/accessible)
 VALID_F_TYPES = [
     "SCP",
     "MTF",
     "SITE",
     "USER",
 ]
+
+# path to deepwell
+CS50xFP_PATH: constant = Path(__file__).resolve().parent.parent # constant bc path isn't all upper case
+DEEPWELL_PATH = CS50xFP_PATH / "deepwell"
 
 def valid_f_type(check: str) -> bool:
     if check in VALID_F_TYPES:
@@ -267,34 +273,34 @@ def create(client: socket.socket, f_type: str, thread_id: int, usr: User) -> Non
     # TODO: create dirs & files
     try:
         # create main dir
-        path = f"./deepwell/{f_type.lower()}s/{file['id']}"
+        path = DEEPWELL_PATH / f"{f_type.lower()}s" / str(file['id'])
         os.makedirs(path)
 
         if f_type == "SCP":
             # create subdirs and populate with files
-            os.makedirs(f"{path}/descs")
-            with open(f"{path}/descs/main.md", "x") as f:
+            os.makedirs(path / "descs")
+            with open(path / "descs" / "main.md", "x") as f:
                 f.write(cast(str, file["desc"]))
 
-            os.makedirs(f"{path}/SCPs")
-            with open(f"{path}/SCPs/main.md", "x") as f:
+            os.makedirs(path / "SCPs")
+            with open(path / "SCPs" / "main.md", "x") as f:
                 f.write(cast(str, file["SCPs"]))
 
-            os.makedirs(f"{path}/addenda")
+            os.makedirs(path / "addenda")
             # TODO: Handle addenda
 
         elif f_type == "MTF":
-            with open(f"{path}/desc.md", "x") as f:
+            with open(path / "desc.md", "x") as f:
                 f.write(cast(str, file["desc"]))
 
         elif f_type == "SITE":
-            with open(f"{path}/loc.md", "x") as f:
+            with open(path / "loc.md", "x") as f:
                 f.write(cast(str, file["loc"]))
-            with open(f"{path}/desc.md", "x") as f:
+            with open(path / "desc.md", "x") as f:
                 f.write(cast(str, file["desc"]))
-            with open(f"{path}/dossier.md", "x") as f:
+            with open(path / "dossier.md", "x") as f:
                 f.write(cast(str, file["dossier"]))
-            with open(f"{path}/loc.md", "x") as f:
+            with open(path / "loc.md", "x") as f:
                 f.write(cast(str, file["loc"]))
 
     except (FileExistsError, OSError) as e:
@@ -366,11 +372,102 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
     # We can build response
     response = {"db_info":data}
 
-    # path to deepwell entry
-    path = f"C:/Users/User2/Documents/GitHub/SCiPNET/CS50xFP/deepwell/{f_type.lower()}s/{f_identifier}"
-    
+    # build path to file
+    path = (DEEPWELL_PATH / f"{f_type.lower()}s" / str(f_identifier)).resolve()
+
     if f_type == "SCP":
+
+        # get descs
+        descs = {}
+        descs_path = path / "descs"
+        if descs_path.exists():
+            for desc in os.listdir(descs_path):
+                with open(descs_path / desc, "r") as f:
+                    descs[desc] = f.read()
+        else:
+            log_event(usr.id,
+                        "USR TRIED TO ACCESS SCP WITHOUT DESC PATH",
+                        f"ATTEMPTED SCP: {f_identifier}, PATH: {descs_path}")
+            send(client, "INVALID FILE DATA")
         
+        response["descs"] = descs
+
+        # get SCPs
+        scps = {}
+        scps_path = path / "SCPs"
+        if scps_path.exists():
+            for scp in os.listdir(scps_path):
+                with open(scps_path / scp, "r") as f:
+                    scps[scp] = f.read()
+        else:
+            log_event(usr.id,
+                        "USR TRIED TO ACCESS SCP WITHOUT SCPs PATH",
+                        f"ATTEMPTED SCP: {f_identifier}, PATH: {scps_path}")
+            send(client, "INVALID FILE DATA")
+        
+        response["SCPs"] = scps
+
+        # get addenda
+        addenda = {}
+        addenda_path = path / "addenda"
+        if addenda_path.exists():
+            for addendum in os.listdir(addenda_path):
+                with open(addenda_path / addendum, "r") as f:
+                    addenda[addendum] = f.read()
+        else:
+            log_event(usr.id,
+                        "USR TRIED TO ACCESS SCP WITHOUT ADDENDA PATH",
+                        f"ATTEMPTED SCP: {f_identifier}, PATH: {addenda_path}")
+            send(client, "INVALID FILE DATA")
+        
+        response["addenda"] = addenda
+    
+    elif f_type == "MTF":
+        if path.exists():
+            with open(path / "desc.md", "r") as f:
+                response["desc"] = f.read()
+        else:
+            log_event(usr.id,
+                        "USR TRIED TO ACCESS MTF WITHOUT PATH",
+                        f"ATTEMPTED MTF: {f_identifier}, PATH: {path}")
+            send(client, "INVALID FILE DATA")
+            return
+
+    elif f_type == "SITE":
+        if path.exists():
+            with open(path / "loc.md", "r") as f:
+                response["loc"] = f.read()
+            with open(path / "desc.md", "r") as f:
+                response["desc"] = f.read()
+            with open(path / "dossier.md", "r") as f:
+                response["dossier"] = f.read()
+        else:
+            log_event(usr.id,
+                        "USR TRIED TO ACCESS SITE WITHOUT PATH",
+                        f"ATTEMPTED SITE: {f_identifier}, PATH: {path}")
+            send(client, "INVALID FILE DATA")
+            return
+        
+        # get personnel
+        personnel = db.execute("SELECT id, name, title_id, clearance_level_id FROM users WHERE site_id = ?", f_identifier)
+        # get scps
+        scps = db.execute("""SELECT id, containment_class_id, secondary_class_id,
+                          disruption_class_id, risk_class_id FROM scps 
+                          WHERE site_responsible_id = ? and classification_level_id <= ?""",
+                          f_identifier, usr.clearance_level_id)
+
+        if personnel and scps:
+            response["personnel"] = personnel
+            response["scps"] = scps
+        else:
+            log_event(usr.id,
+                        "USR TRIED TO ACCESS SITE WITHOUT PERSONNEL OR SCPS",
+                        f"ATTEMPTED SITE: {f_identifier}")
+            send(client, "INVALID FILE DATA")
+            return
+    
+    # send response to client
+    send(client, ["SUCCESS", response])
 
 def handle_usr(client: socket.socket, addr, thread_id: int) -> None:
     '''
