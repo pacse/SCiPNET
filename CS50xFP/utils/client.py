@@ -8,7 +8,9 @@ from .art import create_f, created_f, clearance_denied, invalid_f_type
 from .art import invalid_f_data, no_data_recvd
 from .socket import ADDR, send, recv
 
-from rich.console import Console # for typedefing
+# for typedefing
+from rich.console import Console 
+from typing import Any
 
 def conn_to_server() -> socket.socket:
     '''
@@ -203,27 +205,39 @@ def create(server: socket.socket, f_type: str, c_lvl: int) -> None:
 
 def access(server: socket.socket, console: Console, type: str, file: str) -> None:
     # TODO: remake to work with server.access()
-    if type == "SCP":
-        print(f"Requesting access to file SCP-{file}. . .")
-        send(server, f"ACCESS SCP {file}")
-        response = recv(server)
 
-        if not response: # no data, some error happened
-            printc("[ERROR]: NO RESPONSE FROM DEEPWELL")
-            server.close()
-            return
-        
-        # decode
-        if response["status"] == "EXPUNGED":
-            expunged(file)
-        elif response["status"] == "REDACTED":
-            redacted(file, response["f_classification"], response["usr_clearance"])
-        elif response["status"] == "GRANTED":
-            granted(file)
-            display_scp(response, console)
-        else:
-            printc("[ERROR]")
-            printc("INVALID RESPONSE FROM SERVER")
+    # send server access request
+    send(server, f"ACCESS {type} {file}")
+
+    # get response
+    response = recv(server)
+    if not response: # ensure we have data
+        no_response()
+        server.close()
+        return
+    
+    # check for errors
+    if response == "INVALID FILETYPE":
+        invalid_f_type(type)
+        return
+    
+    elif response == "EXPUNGED":
+        expunged(file)
+        return
+    
+    elif response[0] == "REDACTED":
+        redacted(f"{type} {file}", response[1], response[2])
+        return
+
+    elif response[0] != "GRANTED":
+        printc(f"INVALID RESPONSE: {response!r}")
+        server.close()
+        return
+    
+    f_data: dict[str, Any] = response[1]
+
+    if type == "SCP":
+        display_scp(f_data, console)
 
     elif type == "MTF":
         # TODO
