@@ -98,20 +98,23 @@ def init_scp(info: dict[str, str | int | None]) -> SCP:
     classification_level = _formatname("clearance_levels",
                                        cast(int, info["classification_level_id"]))
     
-    containment_class = _formatname("containment_class",
+    containment_class = _formatname("containment_classes",
                                     cast(int, info["containment_class_id"]))
     
     
     if info["secondary_class_id"] != 0: # 0 is null
-        secondary_class = get_name("secondary_class",
+        secondary_class = get_name("secondary_classes",
                                    cast(int, info["secondary_class_id"]))
     else:
         secondary_class = None
 
-    d_cls_gn = get_name('disruption_class', cast(int, info['disruption_class_id']))
+    d_cls_gn = get_name('disruption_classes', cast(int, info['disruption_class_id']))
     disruption_class = f"Level {info['disruption_class_id']} - {d_cls_gn}"
+
+    # TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # handle null values properly
     
-    r_cls_gn = get_name("risk_class", cast(int, info["risk_class_id"]))
+    r_cls_gn = get_name("risk_classes", cast(int, info["risk_class_id"]))
     risk_class = f"Level {info['risk_class_id']} - {r_cls_gn}"
 
     if info["assigned_task_force_id"]:
