@@ -11,7 +11,7 @@ from .sql import db, User, init_usr, log_event, get_id, next_id
 from .socket import send, recv
 
 # enable/disable debug messages
-DEBUG = True
+DEBUG = False
 
 # valid file types (creatable/accessible)
 VALID_F_TYPES = [
@@ -314,6 +314,7 @@ def create(client: socket.socket, f_type: str, thread_id: int, usr: User) -> Non
     print("created file") # debug
 
 def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_id: int, usr: User) -> None:
+    # TODO: validate
     # check if valid file type
     if not valid_f_type(f_type):
         send(client, ["INVALID FILETYPE", f_type])
@@ -326,7 +327,13 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
     try:
         # get id for f_id if f_id is str
         if isinstance(f_identifier, str):
-            f_identifier = get_id(f"{f_type.lower()}s", f_identifier)
+            try: # try to convert to int
+                if DEBUG:
+                    print(f"Trying to convert {f_identifier!r} to int")
+                f_identifier = int(f_identifier)
+
+            except ValueError: # if not int, get id from db
+                f_identifier = get_id(f"{f_type.lower()}s", f_identifier)
         
         # get file
         data = db.execute(f"SELECT * FROM {f_type.lower()}s WHERE id = ?", f_identifier)[0]
@@ -381,7 +388,7 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
         descs_path = path / "descs"
         if descs_path.exists():
             for desc in os.listdir(descs_path):
-                with open(descs_path / desc, "r") as f:
+                with open(descs_path / desc, "r", encoding="utf-8") as f:
                     descs[desc] = f.read()
         else:
             log_event(usr.id,
@@ -396,7 +403,7 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
         scps_path = path / "SCPs"
         if scps_path.exists():
             for scp in os.listdir(scps_path):
-                with open(scps_path / scp, "r") as f:
+                with open(scps_path / scp, "r", encoding="utf-8") as f:
                     scps[scp] = f.read()
         else:
             log_event(usr.id,
@@ -411,7 +418,7 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
         addenda_path = path / "addenda"
         if addenda_path.exists():
             for addendum in os.listdir(addenda_path):
-                with open(addenda_path / addendum, "r") as f:
+                with open(addenda_path / addendum, "r", encoding="utf-8") as f:
                     addenda[addendum] = f.read()
         else:
             log_event(usr.id,
@@ -423,7 +430,7 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
     
     elif f_type == "MTF":
         if path.exists():
-            with open(path / "desc.md", "r") as f:
+            with open(path / "desc.md", "r", encoding="utf-8") as f:
                 response["desc"] = f.read()
         else:
             log_event(usr.id,
@@ -434,11 +441,11 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
 
     elif f_type == "SITE":
         if path.exists():
-            with open(path / "loc.md", "r") as f:
+            with open(path / "loc.md", "r", encoding="utf-8") as f:
                 response["loc"] = f.read()
-            with open(path / "desc.md", "r") as f:
+            with open(path / "desc.md", "r", encoding="utf-8") as f:
                 response["desc"] = f.read()
-            with open(path / "dossier.md", "r") as f:
+            with open(path / "dossier.md", "r", encoding="utf-8") as f:
                 response["dossier"] = f.read()
         else:
             log_event(usr.id,
@@ -466,7 +473,7 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
             return
     
     # send response to client
-    send(client, ["SUCCESS", response])
+    send(client, ["GRANTED", response])
 
 def handle_usr(client: socket.socket, addr, thread_id: int) -> None:
     '''
