@@ -6,12 +6,15 @@ from rich.console import Console
 from time import sleep as sp
 from random import uniform as uf
 
-from .basic import clear, timestamp, Unknown
+from .basic import clear, timestamp
 from .sql import init_scp, User, SCP, get_name
 
 # disable markdown_it logging
 import logging
 logging.getLogger("markdown_it").setLevel(logging.WARNING)
+
+# for typdefing
+from typing import Any
 
 ''' Validate terminal size '''
 try:
@@ -331,14 +334,14 @@ def acs_bar(scp_info: SCP) -> None:
     "",
     ])
 
-def display_scp(response: dict[str, Unknown], console: Console) -> None:
+def display_scp(data: dict[str, Any], console: Console) -> None:
     '''
     Displays a scp after requested by user
     '''
-    scp_info = init_scp(response["scp_info"])
-    descs: dict[str, str] = response["descs"]
-    SCPs: dict[str, str] = response["SCPs"]
-    addenda: dict[str, str] = response["addenda"]
+    scp_info = init_scp(data["db_info"])
+    descs: dict[str, str] = data["descs"]
+    SCPs: dict[str, str] = data["SCPs"]
+    addenda: dict[str, str] = data["addenda"]
 
     # print scp_info
     acs_bar(scp_info)
