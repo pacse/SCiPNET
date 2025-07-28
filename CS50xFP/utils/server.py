@@ -5,7 +5,6 @@ import os
 import socket
 from typing import cast, Final as constant
 from dataclasses import asdict
-from urllib.parse import quote, unquote
 from pathlib import Path
 
 from .sql import db, User, init_usr, log_event, get_id, next_id

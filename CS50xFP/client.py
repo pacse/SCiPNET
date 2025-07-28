@@ -2,14 +2,12 @@
 Client
 '''
 
-import socket
 import sys
 from rich.console import Console
-from rich.markdown import Markdown
 
 from utils import art
 from utils.sql import init_usr
-from utils.socket import decode, recv, send
+from utils.socket import recv, send
 
 from utils.basic import clear
 import utils.client as client
