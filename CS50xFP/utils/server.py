@@ -381,6 +381,8 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
     # build path to file
     path = (DEEPWELL_PATH / f"{f_type.lower()}s" / str(f_identifier)).resolve()
 
+    # get files from deepwell
+    # NOTE: None for usr
     if f_type == "SCP":
 
         # get descs
@@ -474,6 +476,7 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
     
     # send response to client
     send(client, ["GRANTED", response])
+
 
 def handle_usr(client: socket.socket, addr, thread_id: int) -> None:
     '''
