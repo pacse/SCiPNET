@@ -448,5 +448,5 @@ def display_scp(data: dict[str, Any], console: Console) -> None:
                     # don't offer it again
                     a_names.remove(name)
 
-        except ValueError | IndexError:
+        except ValueError or IndexError:
             print(f"INVALID CHOICE: {inp!r}")
