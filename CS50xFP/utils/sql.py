@@ -86,6 +86,8 @@ class SCP:
     assigned_task_force_name: str | None
 
 def init_scp(info: dict[str, str | int | None]) -> SCP:
+    # TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # handle null values properly ypu lazy cabrone
     '''
     Creates a scp dataclass from
     the scp's deepwell info
@@ -110,9 +112,6 @@ def init_scp(info: dict[str, str | int | None]) -> SCP:
 
     d_cls_gn = get_name('disruption_classes', cast(int, info['disruption_class_id']))
     disruption_class = f"Level {info['disruption_class_id']} - {d_cls_gn}"
-
-    # TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    # handle null values properly
     
     r_cls_gn = get_name("risk_classes", cast(int, info["risk_class_id"]))
     risk_class = f"Level {info['risk_class_id']} - {r_cls_gn}"
