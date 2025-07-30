@@ -23,6 +23,7 @@ def clear() -> None:
 def timestamp() -> str:
   '''
   gets the current timestamp
-  format: Day/Month/Year - Hour/min/second
+  
+  format: Day/Month/Year - Hour/Minute/Second
   '''
   return dt.now().strftime("%d/%m/%Y - %H:%M:%S")

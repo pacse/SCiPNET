@@ -49,7 +49,8 @@ def send(conn: socket.socket, data: Any) -> None:
 
 def recv(conn: socket.socket) -> Any | None:
     '''
-    Receives data from conn\n
+    Receives data from conn
+    
     returns decoded data or None if no data is received
     '''
     # try to get size
