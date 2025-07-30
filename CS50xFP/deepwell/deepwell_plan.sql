@@ -22,9 +22,9 @@ CREATE TABLE scps (
     secondary_class_id INTEGER,
     disruption_class_id INTEGER,
     risk_class_id INTEGER,
-    site_responsible_id INTEGER NOT NULL,
+    site_responsible_id INTEGER,
     assigned_task_force_id INTEGER,
-    status TEXT DEFAULT "active" CHECK(status IN ("active", "neutralized", "explained", "deleted")) -- Thanks ChatGPT for improving this from a bool :)
+    status TEXT DEFAULT "active" CHECK(status IN ("active", "neutralized", "explained", "deleted")) NOT NULL -- Thanks ChatGPT for improving this from a bool :)
 
     FOREIGN KEY(classification_level_id) REFERENCES clearance_levels(id),
     FOREIGN KEY(containment_class_id) REFERENCES containment_classes(id),
