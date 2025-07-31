@@ -1,4 +1,3 @@
-
 from os import get_terminal_size as gts
 from urllib.parse import unquote
 from rich.markdown import Markdown
@@ -367,9 +366,6 @@ def display_scp(data: dict[str, Any], console: Console) -> None:
     # print scp_info
     acs_bar(scp_info)
 
-    # tmp 
-    print(addenda)
-
     # print Special Containment Procedures
     md = Markdown(f"## Special Containment Procedures:\n\n{SCPs['main.md']}")
     console.print(md)
@@ -377,14 +373,16 @@ def display_scp(data: dict[str, Any], console: Console) -> None:
     # print description
     md = Markdown(f"## Description:\n\n{descs['main.md']}")
     console.print(md)
+    print()
 
     # allow other file showing
     if addenda:
         a_names: list[str] = [key.replace(".md","") for key in addenda.keys()]
     else:
         a_names = []
-    desc_names: list[str] = [key.replace(".md","") for key in descs.keys()]
-    SCP_names: list[str] = [key.replace(".md","") for key in SCPs.keys()]
+    
+    desc_names: list[str] = [key.replace(".md","") for key in descs.keys() if key != "main.md"]
+    SCP_names: list[str] = [key.replace(".md","") for key in SCPs.keys() if key != "main.md"]
 
     while True: # always offer more addenda after file access
 
@@ -392,27 +390,28 @@ def display_scp(data: dict[str, Any], console: Console) -> None:
         i = 0
         j = 0
         k = 0
-        print("Display additional addenda?")
-        # first, addenda
-        for i, name in enumerate(a_names):
-            print(f"{i}: {unquote(name)}") # name is fname, so quoted
-        
-        # then descs
-        if len(desc_names) > 1: # ensure there are other descs
-            for j, name in enumerate(desc_names, 1):
-                # skip main
-                if name == "main":
-                    continue
-                # continue indexing from i
-                print(f"{j+i}: {unquote(name)}")
 
-        # finally SCPs
-        if len(SCP_names) > 1:
-            for k, name in enumerate(SCP_names):
-                if name == "main":
-                    continue
-                # continue indexing
-                print(f"{k+j+i}: {unquote(name)}")
+        # check for remaining files
+        if a_names or desc_names or SCP_names:  
+            print("Display additional addenda?")
+
+            # offer more addenda
+            for i, name in enumerate(a_names):
+                print(f"{i}: {unquote(name)}") # name is fname, so quoted
+        
+            # then descs
+            if len(desc_names) > 1: # ensure there are other descs
+                for j, name in enumerate(desc_names):
+                    # continue indexing from i
+                    # (the # of addenda)
+                    print(f"{j+i}: {unquote(name)}")
+
+            # finally SCPs
+            if len(SCP_names) > 1:
+                for k, name in enumerate(SCP_names):
+                    # continue indexing from i+j
+                    # (the # of addenda + descs)
+                    print(f"{k+j+i}: {unquote(name)}")
 
         print("C: close file")
 
