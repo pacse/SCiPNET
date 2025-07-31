@@ -421,7 +421,7 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
         if addenda_path.exists():
             for addendum in os.listdir(addenda_path):
                 with open(addenda_path / addendum, "r", encoding="utf-8") as f:
-                    addenda[addendum] = f.read()
+                    addenda[addendum.replace(".md", "")] = f.read()
         else:
             log_event(usr.id,
                         "USR TRIED TO ACCESS SCP WITHOUT ADDENDA PATH",

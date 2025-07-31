@@ -82,12 +82,12 @@ class SCP:
     secondary_class: str | None
     disruption_class: str
     risk_class: str
-    site_responsible_id: int
+    site_responsible_id: int | None
     assigned_task_force_name: str | None
 
 def init_scp(info: dict[str, str | int | None]) -> SCP:
     # TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    # handle null values properly ypu lazy cabrone
+    # handle null values properly you lazy cabrone (╯°□°）╯︵ ┻━┻
     '''
     Creates a scp dataclass from
     the scp's deepwell info
@@ -104,7 +104,7 @@ def init_scp(info: dict[str, str | int | None]) -> SCP:
                                     cast(int, info["containment_class_id"]))
     
     
-    if info["secondary_class_id"] != 0: # 0 is null
+    if info["secondary_class_id"]:
         secondary_class = get_name("secondary_classes",
                                    cast(int, info["secondary_class_id"]))
     else:
@@ -123,6 +123,7 @@ def init_scp(info: dict[str, str | int | None]) -> SCP:
     else:
         assigned_task_force_name = None
 
+    
     return SCP(
         cast(int, info["id"]),
         classification_level,
@@ -130,6 +131,6 @@ def init_scp(info: dict[str, str | int | None]) -> SCP:
         secondary_class,
         disruption_class,
         risk_class,
-        cast(int, info["site_responsible_id"]),
+        cast((int | None), info["site_responsible_id"]),
         assigned_task_force_name
     )

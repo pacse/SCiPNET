@@ -340,6 +340,8 @@ def acs_bar(scp_info: SCP) -> None:
 
     art by ChatGPT
     '''
+    site_responsible = scp_info.site_responsible_id if scp_info.site_responsible_id else "[REDACTED]"
+    
     print_lines([
     "",
     "┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐",
@@ -348,7 +350,7 @@ def acs_bar(scp_info: SCP) -> None:
     f"│{f'Containment Class: {scp_info.containment_class}':^58}||{f'Disruption Class: {scp_info.disruption_class}':^58}|",
     f"│{f'Secondary Class: {scp_info.secondary_class}':^58}||{f'Risk Class: {scp_info.risk_class}':^58}|",
     f"├──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤",
-    f"│{f'Site Responsible: {scp_info.site_responsible_id}':^58}||{f'Assigned Task Force: {scp_info.assigned_task_force_name}':^58}|",
+    f"│{f'Site Responsible: {site_responsible}':^58}||{f'Assigned Task Force: {scp_info.assigned_task_force_name}':^58}|",
     "└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘",
     "",
     ])
@@ -364,6 +366,9 @@ def display_scp(data: dict[str, Any], console: Console) -> None:
 
     # print scp_info
     acs_bar(scp_info)
+
+    # tmp 
+    print(addenda)
 
     # print Special Containment Procedures
     md = Markdown(f"## Special Containment Procedures:\n\n{SCPs['main.md']}")
