@@ -335,7 +335,7 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
             except ValueError: # if not int, get id from db
                 f_identifier = get_id(f"{f_type.lower()}s", f_identifier)
         
-        # get file
+        # get file TODO: Utilize joins in query
         data = db.execute(f"SELECT * FROM {f_type.lower()}s WHERE id = ?", f_identifier)[0]
     except IndexError:
         send(client, "EXPUNGED")
@@ -457,23 +457,28 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
             return
         
         # get personnel
-        personnel = db.execute("SELECT id, name, title_id, clearance_level_id FROM users WHERE site_id = ?", f_identifier)
-        # get scps
+        personnel = db.execute("""SELECT users.id as u_id,
+                               users.name as u_name,
+                               titles.name as title,
+                               clearance_levels.name as clearance_lvl
+                               FROM users
+                               JOIN titles ON users.title_id = titles.id
+                               JOIN clearance_levels ON users.clearance_level_id = clearance_levels.id
+                               WHERE users.site_id = ?""", f_identifier)
+
+        # get scps TODO: Utilize joins in query
         scps = db.execute("""SELECT id, containment_class_id, secondary_class_id,
                           disruption_class_id, risk_class_id FROM scps 
                           WHERE site_responsible_id = ? and classification_level_id <= ?""",
                           f_identifier, usr.clearance_level_id)
+        
+        # and mtfs
+        mtfs = db.execute("SELECT * FROM mtfs WHERE site_id = ?", f_identifier)
 
-        if personnel and scps:
-            response["personnel"] = personnel
-            response["scps"] = scps
-        else:
-            log_event(usr.id,
-                        "USR TRIED TO ACCESS SITE WITHOUT PERSONNEL OR SCPS",
-                        f"ATTEMPTED SITE: {f_identifier}")
-            send(client, "INVALID FILE DATA")
-            return
-    
+        response["personnel"] = personnel
+        response["scps"] = scps
+        response["mtfs"] = mtfs
+
     # send response to client
     send(client, ["GRANTED", response])
 
