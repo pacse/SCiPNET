@@ -333,6 +333,8 @@ def created_f(f_type: str) -> None:
     ])
 
 
+# to display a SCP article
+
 def acs_bar(scp_info: SCP) -> None:
     '''
     prints a ACS header for an scp article
@@ -454,3 +456,33 @@ def display_scp(data: dict[str, Any], console: Console) -> None:
 
         except ValueError or IndexError:
             print(f"INVALID CHOICE: {inp!r}")
+
+# To display a site
+def site_bar(site_info: dict[str, Any]) -> None:
+    '''
+    prints a site header for a site article
+
+    art by ChatGPT
+    '''
+    print_lines([
+        "",
+        "┌───────────────────────────────────────────────────────────────────────────────┐",
+        f"│{f'Site ID: {site_info['id']}':^78}||{f'Site Name: {site_info['name']}':^78}|",
+        "├───────────────────────────────────────────────────────────────────────────────┤",
+        f"│{f'Description: {site_info['description']}':^78}||{'':^78}|",
+        "└───────────────────────────────────────────────────────────────────────────────┘",
+        "",
+    ])
+
+def display_site(data: dict[str, Any], console: Console) -> None:
+    '''
+    Displays a site after requested by user
+    '''
+    site_id = data["id"]
+    site_name = data["name"]
+    site_loc = data["loc"]
+    site_desc = data["desc"]
+    site_dossier = data["dossier"]
+    site_personnel = data["personnel"]
+    site_scps = data["scps"]
+
