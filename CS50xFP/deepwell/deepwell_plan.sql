@@ -40,9 +40,11 @@ CREATE TABLE mtfs (
     name TEXT NOT NULL, -- eg. Epsilon-6
     nickname TEXT NOT NULL, -- eg. "Village Idiots"
     leader INTEGER, -- probably null when ripped from wikidot
+    site_id INTEGER NOT NULL, -- site responsible for the MTF TODO: Implement in DB
     active BOOLEAN DEFAULT TRUE NOT NULL,
 
-    FOREIGN KEY(leader) REFERENCES users(id)
+    FOREIGN KEY(leader) REFERENCES users(id),
+    FOREIGN KEY(site_id) REFERENCES sites(id)
     )
 
 CREATE TABLE sites (
