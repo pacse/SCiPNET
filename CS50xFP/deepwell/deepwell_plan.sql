@@ -39,10 +39,12 @@ CREATE TABLE mtfs (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL, -- eg. Epsilon-6
     nickname TEXT NOT NULL, -- eg. "Village Idiots"
-    leader INTEGER, -- probably null when ripped from wikidot
+    leader_id INTEGER, -- probably null when ripped from wikidot
+    assigned_site_id INTEGER,
     active BOOLEAN DEFAULT TRUE NOT NULL,
 
-    FOREIGN KEY(leader) REFERENCES users(id)
+    FOREIGN KEY(leader_id) REFERENCES users(id),
+    FOREIGN KEY(assigned_site_id) REFERENCES sites(id)
     )
 
 CREATE TABLE sites (
@@ -63,6 +65,10 @@ CREATE TABLE audit_log (
     )
 
 -- helper tables
+CREATE TABLE colours ( -- colours to use when printing markdown
+    id INTEGER PRIMARY KEY
+    hex_code INTEGER NOT NULL -- convert to and from hex
+)
 
 CREATE TABLE clearance_levels (
     id INTEGER PRIMARY KEY,
