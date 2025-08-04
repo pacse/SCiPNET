@@ -6,7 +6,7 @@ from time import sleep as sp
 from random import uniform as uf
 
 from .basic import clear, timestamp
-from .sql import init_scp, User, SCP, get_name
+from .sql import init_scp, User, SCP, get_name, get_colour
 
 # disable markdown_it logging
 import logging
@@ -18,6 +18,7 @@ from typing import Any
 ''' Validate terminal size '''
 try:
     SIZE = gts().columns
+    SIZE = SIZE if SIZE % 2 == 0 else SIZE-1  # type: ignore
 except OSError:
     SIZE = 120 # type: ignore
 
@@ -37,6 +38,20 @@ def print_lines(lines: list[str]) -> None:
     '''
     for line in lines:
         printc(line)
+
+def print_md_lines(lines: list[str], console: Console) -> None:
+    '''
+    prints all lines provided as markdown, centered to the terminal size
+    '''
+    for line in lines:
+        console.print(Markdown(line), justify="center", width=SIZE)
+
+def print_rich_lines(lines: list[str], console: Console) -> None:
+    '''
+    prints all lines provided as rich text, centered to the terminal size
+    '''
+    for line in lines:
+        console.print(line, justify="center", width=SIZE)
 
 def startup() -> None:
     '''
@@ -333,26 +348,27 @@ def created_f(f_type: str) -> None:
     ])
 
 
-def acs_bar(scp_info: SCP) -> None:
+def acs_bar(scp_info: SCP, console: Console) -> None:
     '''
     prints a ACS header for an scp article
 
     art by ChatGPT
     '''
+    # TODO: Remake 🎉
+    # the library's designed ✨not to do what i want✨
     site_responsible = scp_info.site_responsible_id if scp_info.site_responsible_id else "[REDACTED]"
     
-    print_lines([
+    print_rich_lines([
     "",
     "┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐",
-    f"│{f'Item #: SCP-{scp_info.id}':^58}||{f'Classification Level: {scp_info.classification_level}':^58}|",
+    f"│{f'Item #: **SCP-{scp_info.id:03d}**':^62}||{f'Classification Level: [#{scp_info.colours.class_lvl}]**{scp_info.classification_level}**[/]':^74}|",
     "├──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤",
-    f"│{f'Containment Class: {scp_info.containment_class}':^58}||{f'Disruption Class: {scp_info.disruption_class}':^58}|",
-    f"│{f'Secondary Class: {scp_info.secondary_class}':^58}||{f'Risk Class: {scp_info.risk_class}':^58}|",
+    f"│{f'Containment Class: [#{scp_info.colours.cont_clss}]**{scp_info.containment_class}**[/]':^58}||{f'Disruption Class: [#{scp_info.colours.disrupt_clss}]**{scp_info.disruption_class}**[/]':^58}|",
+    f"│{f'Secondary Class: [#fcfcfc]**{scp_info.secondary_class}**[/]':^58}||{f'Risk Class: [#{scp_info.colours.rsk_clss}]**{scp_info.risk_class}[/]**':^58}|",
     f"├──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤",
-    f"│{f'Site Responsible: {site_responsible}':^58}||{f'Assigned Task Force: {scp_info.assigned_task_force_name}':^58}|",
+    f"│{f'Site Responsible: **{site_responsible}**':^58}||{f'Assigned Task Force: **{scp_info.assigned_task_force_name}**':^58}|",
     "└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘",
-    "",
-    ])
+    "",], console)
 
 def display_scp(data: dict[str, Any], console: Console) -> None:
     '''
@@ -364,7 +380,7 @@ def display_scp(data: dict[str, Any], console: Console) -> None:
     addenda: dict[str, str] = data["addenda"]
 
     # print scp_info
-    acs_bar(scp_info)
+    acs_bar(scp_info, console)
 
     # print Special Containment Procedures
     md = Markdown(f"## Special Containment Procedures:\n\n{SCPs['main.md']}")
@@ -373,7 +389,6 @@ def display_scp(data: dict[str, Any], console: Console) -> None:
     # print description
     md = Markdown(f"## Description:\n\n{descs['main.md']}")
     console.print(md)
-    print()
 
     # allow other file showing
     if addenda:
@@ -390,6 +405,9 @@ def display_scp(data: dict[str, Any], console: Console) -> None:
         i = 0
         j = 0
         k = 0
+
+        # spacing between last print
+        print()
 
         # check for remaining files
         if a_names or desc_names or SCP_names:  
