@@ -16,9 +16,13 @@ def next_id(table: str) -> int:
     return db.execute("SELECT MAX(id) + 1 as next_id FROM ?", 
                       table)[0]["next_id"]
 
-def get_name(table: str, id: int) -> str:
-    return db.execute("SELECT name FROM ? WHERE id = ?", 
-                      table, id)[0]["name"]
+
+def get_name(table: str, id: int | None) -> str:
+    if id is None:
+        return "None"
+    else:
+        return db.execute("SELECT name FROM ? WHERE id = ?", 
+                        table, id)[0]["name"]
 
 def get_nickname(id: int) -> str:
     '''
@@ -30,6 +34,41 @@ def get_nickname(id: int) -> str:
 def get_id(table: str, name: str) -> int:
     return db.execute("SELECT id FROM ? WHERE name = ?", 
                       table, name)[0]["id"]
+
+
+def get_colour(id: int) -> str:
+    '''
+    Gets a ID's colour (for art.py) from a table
+    '''
+    # get colour
+    colour = db.execute("SELECT hex_code FROM colours WHERE id = ?",
+                             id)[0]["hex_code"]
+    
+    # convert to hex & return
+    return f"{colour:06x}"
+
+def get_cc_colour(id: int) -> str:
+    '''
+    Gets a containment class's colour (for art.py)
+    '''
+    # slightly different for containment classes,
+    # prolly easier to hardcode (it's definately not a good idea to hardcode)
+    if id == 1:
+        colours = (0,159,107) # Green
+    elif id == 2:
+        colours = (255,211,0) # Yellow
+    elif id == 3:
+        colours = (192,2,51) # Red
+    elif id == 4:
+        colours = (66,66,72) # Grey
+    elif id in range(5,9):
+        colours = (252,252,252) # White (for explained, pending, esoteric, etc.)
+    else:
+        raise ValueError(f"Invalid containment class ID: {id}")
+
+    # convert to hex & return
+    return "".join(f"{n:02x}" for n in colours)
+    
 
 # Log events in the audit log (eg. account creation, login, file access, file edit, ect.)
 def log_event(user_id: int, action: str, details: str = "") -> None:
@@ -66,9 +105,29 @@ def init_usr(info: dict[str, str | int | None]) -> User:
         cast(int, info["clearance_level_id"]),
         cast(int, info["title_id"]),
         cast(int, info["site_id"]),
-        cast(str, info["override_phrase"]) if info["override_phrase"] is not None else None
+        cast(str | None, info["override_phrase"])
       )
 
+
+@dataclass(slots=True)
+class SCP_COLOURS:
+    class_lvl: str
+    cont_clss: str
+    disrupt_clss: str
+    rsk_clss: str
+
+def init_colours(classification_level: int, containment_class: int,
+                disruption_class: int, risk_class: int) -> SCP_COLOURS:
+        '''
+        Creates a SCP_COLOURS dataclass from
+        deepwell values
+        '''
+        return SCP_COLOURS(
+            class_lvl = get_colour(classification_level),
+            cont_clss = get_cc_colour(containment_class),
+            disrupt_clss = get_colour(disruption_class),
+            rsk_clss = get_colour(risk_class)
+        )
 
 @dataclass(slots=True)
 class SCP:
@@ -84,6 +143,8 @@ class SCP:
     risk_class: str
     site_responsible_id: int | None
     assigned_task_force_name: str | None
+    colours: SCP_COLOURS
+
 
 def init_scp(info: dict[str, str | int | None]) -> SCP:
     # TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -92,29 +153,21 @@ def init_scp(info: dict[str, str | int | None]) -> SCP:
     Creates a scp dataclass from
     the scp's deepwell info
     '''
-    def _formatname(table: str, id: int):
-        gn = get_name(table, id)
-        return f"Level {id} - {gn}"
 
     # get proper names from deepwell
-    classification_level = _formatname("clearance_levels",
-                                       cast(int, info["classification_level_id"]))
+    classification_level = get_name("clearance_levels",
+                                    cast(int, info["classification_level_id"]))
+        
+    containment_class = get_name("containment_classes",
+                                 cast(int, info["containment_class_id"]))
     
-    containment_class = _formatname("containment_classes",
-                                    cast(int, info["containment_class_id"]))
     
-    
-    if info["secondary_class_id"]:
-        secondary_class = get_name("secondary_classes",
-                                   cast(int, info["secondary_class_id"]))
-    else:
-        secondary_class = None
+    secondary_class = get_name("secondary_classes",
+                                cast((int | None), info["secondary_class_id"]))
 
-    d_cls_gn = get_name('disruption_classes', cast(int, info['disruption_class_id']))
-    disruption_class = f"Level {info['disruption_class_id']} - {d_cls_gn}"
+    disruption_class = get_name('disruption_classes', cast(int, info['disruption_class_id']))
     
-    r_cls_gn = get_name("risk_classes", cast(int, info["risk_class_id"]))
-    risk_class = f"Level {info['risk_class_id']} - {r_cls_gn}"
+    risk_class = get_name("risk_classes", cast(int, info["risk_class_id"]))
 
     if info["assigned_task_force_id"]:
         atf_name = get_name("mtfs", cast(int, info["assigned_task_force_id"]))
@@ -125,12 +178,19 @@ def init_scp(info: dict[str, str | int | None]) -> SCP:
 
     
     return SCP(
-        cast(int, info["id"]),
-        classification_level,
-        containment_class,
-        secondary_class,
-        disruption_class,
-        risk_class,
-        cast((int | None), info["site_responsible_id"]),
-        assigned_task_force_name
+        id=cast(int, info["id"]),
+        classification_level = classification_level,
+        containment_class = containment_class,
+        secondary_class = secondary_class,
+        disruption_class = disruption_class,
+        risk_class = risk_class,
+        site_responsible_id = cast((int | None), info["site_responsible_id"]),
+        assigned_task_force_name = assigned_task_force_name,
+        
+        colours = init_colours(
+            classification_level = cast(int, info["classification_level_id"]),
+            containment_class = cast(int, info["containment_class_id"]),
+            disruption_class = cast(int, info["disruption_class_id"]),
+            risk_class = cast(int, info["risk_class_id"]),
+        )
     )
