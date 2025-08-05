@@ -39,20 +39,6 @@ def print_lines(lines: list[str]) -> None:
     for line in lines:
         printc(line)
 
-def print_md_lines(lines: list[str], console: Console) -> None:
-    '''
-    prints all lines provided as markdown, centered to the terminal size
-    '''
-    for line in lines:
-        console.print(Markdown(line), justify="center", width=SIZE)
-
-def print_rich_lines(lines: list[str], console: Console) -> None:
-    '''
-    prints all lines provided as rich text, centered to the terminal size
-    '''
-    for line in lines:
-        console.print(line, justify="center", width=SIZE)
-
 def startup() -> None:
     '''
     Prints a fancy startup screen
@@ -355,10 +341,10 @@ def acs_bar(scp_info: SCP, console: Console) -> None:
     art by ChatGPT
     '''
     # TODO: Remake 🎉
-    # the library's designed ✨not to do what i want✨
+    # the library's designed ✨to not do what i want✨
     site_responsible = scp_info.site_responsible_id if scp_info.site_responsible_id else "[REDACTED]"
     
-    print_rich_lines([
+    '''
     "",
     "┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐",
     f"│{f'Item #: **SCP-{scp_info.id:03d}**':^62}||{f'Classification Level: [#{scp_info.colours.class_lvl}]**{scp_info.classification_level}**[/]':^74}|",
@@ -368,7 +354,29 @@ def acs_bar(scp_info: SCP, console: Console) -> None:
     f"├──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤",
     f"│{f'Site Responsible: **{site_responsible}**':^58}||{f'Assigned Task Force: **{scp_info.assigned_task_force_name}**':^58}|",
     "└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘",
-    "",], console)
+    "",
+    '''
+
+    # long string we'll use a lot
+    repeated = "─" * 118
+    left_spaces = " " * ((SIZE - 120) // 2)
+
+    # printing the ACS bar
+    print()
+    printc(f"┌{repeated}┐") # first line
+
+    # === second line ===
+    item_num_len = len(f"Item #: SCP-{scp_info.id:03}")
+    item_num_left_spaces = " " * ((22 - item_num_len) // 2)
+
+    print(f"{left_spaces}|{item_num_left_spaces}", end="")
+    # item #
+    print(f"Item #: ", end="")
+    console.print(f"SCP-{scp_info.id:03}", style="bold",end="")
+    
+    
+    
+
 
 def display_scp(data: dict[str, Any], console: Console) -> None:
     '''
@@ -483,7 +491,7 @@ def site_bar(site_info: dict[str, Any]) -> None:
     print_lines([
         "",
         "┌───────────────────────────────────────────────────────────────────────────────┐",
-        f"│{f'Site ID: {site_info['id']}':^78}||{f'Site Name: {site_info['name']}':^78}|",
+        f"│{f'Site ID: {site_info['id']}':^78}||{f'Site Name: {site_info["name"]}':^78}|",
         "├───────────────────────────────────────────────────────────────────────────────┤",
         f"│{f'Description: {site_info['description']}':^78}||{'':^78}|",
         "└───────────────────────────────────────────────────────────────────────────────┘",
