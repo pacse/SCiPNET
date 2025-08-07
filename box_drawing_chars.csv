@@ -1,0 +1,33 @@
+Character,Unicode,Description
+─,U+2500,Single Horizontal
+│,U+2502,Single Vertical
+┌,U+250C,Single Top Left Corner
+┐,U+2510,Single Top Right Corner
+└,U+2514,Single Bottom Left Corner
+┘,U+2518,Single Bottom Right Corner
+├,U+251C,Single Left T
+┤,U+2524,Single Right T
+┬,U+252C,Single Top T
+┴,U+2534,Single Bottom T
+┼,U+253C,Single Cross
+═,U+2550,Double Horizontal
+║,U+2551,Double Vertical
+╔,U+2554,Double Top Left Corner
+╗,U+2557,Double Top Right Corner
+╚,U+255A,Double Bottom Left Corner
+╝,U+255D,Double Bottom Right Corner
+╠,U+2560,Double Left T
+╣,U+2563,Double Right T
+╦,U+2566,Double Top T
+╩,U+2569,Double Bottom T
+╬,U+256C,Double Cross
+╞,U+255E,"Left T: single right, double vertical"
+╟,U+255F,"Left T: double right, single vertical"
+╡,U+2561,"Right T: single left, double vertical"
+╢,U+2562,"Right T: double left, single vertical"
+╤,U+2564,"Top T: single below, double vertical"
+╥,U+2565,"Top T: double below, single vertical"
+╧,U+2567,"Bottom T: single above, double vertical"
+╨,U+2568,"Bottom T: double above, single vertical"
+╪,U+256A,"Cross: single vertical, double horizontal"
+╫,U+256B,"Cross: double vertical, single horizontal"

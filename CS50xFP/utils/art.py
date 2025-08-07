@@ -372,11 +372,7 @@ def acs_bar(scp_info: SCP, console: Console) -> None:
     print(f"{left_spaces}|{item_num_left_spaces}", end="")
     # item #
     print(f"Item #: ", end="")
-    console.print(f"SCP-{scp_info.id:03}", style="bold",end="")
-    
-    
-    
-
+    console.print(f"SCP-{scp_info.id:03}", style="bold",end="")  
 
 def display_scp(data: dict[str, Any], console: Console) -> None:
     '''
@@ -480,6 +476,7 @@ def display_scp(data: dict[str, Any], console: Console) -> None:
 
         except ValueError or IndexError:
             print(f"INVALID CHOICE: {inp!r}")
+
 
 # To display a site
 def site_bar(site_info: dict[str, Any]) -> None:
