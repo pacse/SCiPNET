@@ -2,6 +2,7 @@ from os import get_terminal_size as gts
 from urllib.parse import unquote
 from rich.markdown import Markdown
 from rich.console import Console
+from rich.text import Text
 from time import sleep as sp
 from random import uniform as uf
 
@@ -24,6 +25,9 @@ except OSError:
 
 if SIZE < 120:
     raise Exception(f"Requires terminal size of 120 columns (current size {SIZE})")
+
+# useful str bars (ACS, Site, etc.)
+REPEATED = "═" * 58
 
 
 def printc(string: str) -> None:
@@ -334,45 +338,98 @@ def created_f(f_type: str) -> None:
     ])
 
 
+def print_piped_line(console: Console, 
+                     string: str, 
+                     side: str,
+                     hex_colour: int | None = None,
+                     width: int = 58,
+                     outer_space: int = (SIZE - 120) // 2,
+                     default_colouring: bool = True) -> None:
+    
+    # quick input validation
+    assert side in ["l", "r"], f"Invalid side choice {side!r}. Must be 'l' or 'r'"
+
+    # calculate inner space
+    inner_space = (width - len(string)) // 2
+    
+    # do we need extra space?
+    if inner_space * 2 != (width - len(string)):
+        use_extra = True
+    else:
+        use_extra = False
+    
+    # print left space
+    if side == 'l':
+        print(f"{' ' * outer_space}║{' ' * inner_space}", end="")
+
+        # extra space for centring
+        if use_extra:
+            print(" ",end="")
+            # flip use extra (saves time later)
+            use_extra = not use_extra
+    else:
+        print(f"║{' ' * inner_space}",end="")
+        
+    # start printing main line
+    split_string = string.split(":") # we only format after the colon
+    print(f"{split_string[0]}:", end="")
+    
+    # now's the hard part, format
+
+    # first get everything we want to format
+    f_string = "".join(split_string[1:])
+    
+    # if we're not using default colouring, 
+    # just print bold f_string
+    if not default_colouring:
+        f_string = Text(f_string)
+        console.print(f_string, style = "bold", end="")
+    
+    # disable normal colouring if we have a hex_code
+    elif hex_colour:
+        f_string = Text(f_string)
+        console.print(f_string, style = f"#{hex_colour:06x} bold", end="")
+    
+    # otherwise just bold
+    else:
+        console.print(f_string, style = "bold",end="")
+    
+    # ╰(*°▽°*)╯ yeye that wasn't that hard ╰(*°▽°*)╯
+    # now rest of line
+    
+    # print right space
+    print(f"{' ' * inner_space}{' ' if use_extra else ''}", end="")
+    
+    # now do we move to a newline?
+    if side == "r":
+        print("║")
+
+
 def acs_bar(scp_info: SCP, console: Console) -> None:
     '''
     prints a ACS header for an scp article
 
     art by ChatGPT
     '''
-    # TODO: Remake 🎉
-    # the library's designed ✨to not do what i want✨
     site_responsible = scp_info.site_responsible_id if scp_info.site_responsible_id else "[REDACTED]"
-    
-    '''
-    "",
-    "┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐",
-    f"│{f'Item #: **SCP-{scp_info.id:03d}**':^62}||{f'Classification Level: [#{scp_info.colours.class_lvl}]**{scp_info.classification_level}**[/]':^74}|",
-    "├──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤",
-    f"│{f'Containment Class: [#{scp_info.colours.cont_clss}]**{scp_info.containment_class}**[/]':^58}||{f'Disruption Class: [#{scp_info.colours.disrupt_clss}]**{scp_info.disruption_class}**[/]':^58}|",
-    f"│{f'Secondary Class: [#fcfcfc]**{scp_info.secondary_class}**[/]':^58}||{f'Risk Class: [#{scp_info.colours.rsk_clss}]**{scp_info.risk_class}[/]**':^58}|",
-    f"├──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤",
-    f"│{f'Site Responsible: **{site_responsible}**':^58}||{f'Assigned Task Force: **{scp_info.assigned_task_force_name}**':^58}|",
-    "└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘",
-    "",
-    '''
 
-    # long string we'll use a lot
-    repeated = "─" * 118
-    left_spaces = " " * ((SIZE - 120) // 2)
-
-    # printing the ACS bar
     print()
-    printc(f"┌{repeated}┐") # first line
-
-    # === second line ===
-    item_num_len = len(f"Item #: SCP-{scp_info.id:03}")
-    item_num_left_spaces = " " * ((22 - item_num_len) // 2)
-
-    print(f"{left_spaces}|{item_num_left_spaces}", end="")
-    # item #
-    print(f"Item #: ", end="")
-    console.print(f"SCP-{scp_info.id:03}", style="bold",end="")  
+    printc(f"╔{REPEATED}╦{REPEATED}╗")
+    print_piped_line(console, f"Item #: SCP-{scp_info.id:03d}", "l", default_colouring=False)
+    print_piped_line(console, f"Classification Level: {scp_info.classification_level}", "r", scp_info.colours.class_lvl)
+    printc(f"╠{REPEATED}╬{REPEATED}╣")
+    print_piped_line(console, f"Containment Class: {scp_info.containment_class}", "l", scp_info.colours.cont_clss)
+    print_piped_line(console, f"Disruption Class: {scp_info.disruption_class}", "r", scp_info.colours.disrupt_clss)
+    print_piped_line(console, f"Secondary Class: {scp_info.secondary_class}", "l", default_colouring=False)
+    print_piped_line(console, f"Risk Class: {scp_info.risk_class}", "r", scp_info.colours.rsk_clss)
+    printc(f"╠{REPEATED}╬{REPEATED}╣")
+    if scp_info.site_responsible_id:
+        print_piped_line(console, f"Site Responsible: Site-{scp_info.site_responsible_id}", "l", default_colouring=False)
+    else:
+        print_piped_line(console, f"Site Responsible: [REDACTED]", "l", default_colouring=False)
+    print_piped_line(console, f"Assigned MTF: {scp_info.assigned_task_force_name}", "r", default_colouring=False)
+    printc(f"╚{REPEATED}╩{REPEATED}╝")
+    print(".")
 
 def display_scp(data: dict[str, Any], console: Console) -> None:
     '''
