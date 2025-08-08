@@ -536,21 +536,15 @@ def display_scp(data: dict[str, Any], console: Console) -> None:
 
 
 # To display a site
-def site_bar(site_info: dict[str, Any]) -> None:
-    '''
-    prints a site header for a site article
+def site_bar(site_id: int, site_name: str, site_loc: str, console: Console) -> None:
+    print()
+    printc(f"╔{REPEATED}═{REPEATED}╗")
+    printc(f"║{site_name:^119}║")
+    printc(f"╠{REPEATED}═{REPEATED}╣")
+    print_piped_line(console, f"ID: {site_id}", "l", default_colouring=False)
+    print_piped_line(console, f"Location: {site_loc}", "r", default_colouring=False)
+    printc(f"╚{REPEATED}═{REPEATED}╝")
 
-    art by ChatGPT
-    '''
-    print_lines([
-        "",
-        "┌───────────────────────────────────────────────────────────────────────────────┐",
-        f"│{f'Site ID: {site_info['id']}':^78}||{f'Site Name: {site_info["name"]}':^78}|",
-        "├───────────────────────────────────────────────────────────────────────────────┤",
-        f"│{f'Description: {site_info['description']}':^78}||{'':^78}|",
-        "└───────────────────────────────────────────────────────────────────────────────┘",
-        "",
-    ])
 
 def display_site(data: dict[str, Any], console: Console) -> None:
     '''
