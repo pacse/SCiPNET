@@ -36,18 +36,15 @@ def get_id(table: str, name: str) -> int:
                       table, name)[0]["id"]
 
 
-def get_colour(id: int) -> str:
+def get_colour(id: int) -> int:
     '''
     Gets a ID's colour (for art.py) from a table
     '''
-    # get colour
-    colour = db.execute("SELECT hex_code FROM colours WHERE id = ?",
+    # get colour & return
+    return db.execute("SELECT hex_code FROM colours WHERE id = ?",
                              id)[0]["hex_code"]
-    
-    # convert to hex & return
-    return f"{colour:06x}"
 
-def get_cc_colour(id: int) -> str:
+def get_cc_colour(id: int) -> int:
     '''
     Gets a containment class's colour (for art.py)
     '''
@@ -67,7 +64,7 @@ def get_cc_colour(id: int) -> str:
         raise ValueError(f"Invalid containment class ID: {id}")
 
     # convert to hex & return
-    return "".join(f"{n:02x}" for n in colours)
+    return int("".join(f"{n:02x}" for n in colours), 16)
     
 
 # Log events in the audit log (eg. account creation, login, file access, file edit, ect.)
@@ -111,10 +108,10 @@ def init_usr(info: dict[str, str | int | None]) -> User:
 
 @dataclass(slots=True)
 class SCP_COLOURS:
-    class_lvl: str
-    cont_clss: str
-    disrupt_clss: str
-    rsk_clss: str
+    class_lvl: int
+    cont_clss: int
+    disrupt_clss: int
+    rsk_clss: int
 
 def init_colours(classification_level: int, containment_class: int,
                 disruption_class: int, risk_class: int) -> SCP_COLOURS:
@@ -144,7 +141,6 @@ class SCP:
     site_responsible_id: int | None
     assigned_task_force_name: str | None
     colours: SCP_COLOURS
-
 
 def init_scp(info: dict[str, str | int | None]) -> SCP:
     # TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!
