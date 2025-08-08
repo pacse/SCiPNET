@@ -230,4 +230,4 @@ indexes = [
 for index in indexes:
     db.execute(index)
 
-print("Success puta madre!!!")
+print("Success!!!")
