@@ -222,7 +222,7 @@ def access(server: socket.socket, console: Console, type: str, file: str) -> Non
         return
     
     elif response == "EXPUNGED":
-        expunged(file)
+        expunged(f"{type} {file}")
         return
     
     elif response[0] == "REDACTED":

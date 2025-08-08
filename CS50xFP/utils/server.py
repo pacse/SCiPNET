@@ -447,8 +447,13 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
                 response["loc"] = f.read()
             with open(path / "desc.md", "r", encoding="utf-8") as f:
                 response["desc"] = f.read()
-            with open(path / "dossier.md", "r", encoding="utf-8") as f:
-                response["dossier"] = f.read()
+
+            # dossier may not exist
+            try:
+                with open(path / "dossier.md", "r", encoding="utf-8") as f:
+                    response["dossier"] = f.read()
+            except FileNotFoundError:
+                response["dossier"] = None
         else:
             log_event(usr.id,
                         "USR TRIED TO ACCESS SITE WITHOUT PATH",
