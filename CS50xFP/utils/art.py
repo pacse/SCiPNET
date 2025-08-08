@@ -405,6 +405,30 @@ def print_piped_line(console: Console,
         print("║")
 
 
+def print_table(t_data: list[dict[str, Any]]) -> None:
+    max_len = 0
+    for key in t_data[0].keys():
+        if len(key) > max_len:
+            max_len = len(key)
+    
+    for row in t_data:
+        for value in row.values():
+            if len(value) > max_len:
+                max_len = len(value)
+
+    # important vars
+    columns = list(t_data[0].keys())
+    sep = "═" * (max_len + 2)
+
+    # now print the table
+    
+    # row 1
+    printc(f"╔{f'{sep}╤' * (len(columns) - 1)}{sep}╗")
+    
+    for row in t_data:
+        printc(f"║", end="")
+    
+
 def acs_bar(scp_info: SCP, console: Console) -> None:
     '''
     prints a ACS header for an scp article
@@ -558,3 +582,15 @@ def display_site(data: dict[str, Any], console: Console) -> None:
     site_personnel = data["personnel"]
     site_scps = data["scps"]
 
+    # first display the site bar
+    site_bar(site_id, site_name, site_loc, console)
+
+    console.print(f"##Description:\n{site_desc}")
+
+    if site_dossier is not None:
+        console.print(f"##Dossier:\n{site_dossier}")
+
+    console.print(f"##Site Personnel:")
+    print_table(site_personnel)
+
+    console.print(f"##Contained Personnel:")

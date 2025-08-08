@@ -363,7 +363,7 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
         return
     
     elif f_type == "SITE" and (
-    usr.clearance_level_id < 3 or
+    usr.clearance_level_id < 3 and
     usr.site_id != f_identifier):
     # site access requirements: 
     # must work there OR

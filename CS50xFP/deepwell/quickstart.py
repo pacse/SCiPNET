@@ -74,7 +74,7 @@ db.execute("INSERT INTO secondary_classes (id, name) VALUES (0, 'None')")
 # disruption classes
 db.execute("""CREATE TABLE disruption_classes (
 id INTEGER PRIMARY KEY,
-name TEXT NOT NULL -- eg. Dark, Vlam, ect.
+name TEXT NOT NULL -- eg. 'Level 1 - Dark'
 )""")
 
 for d_clss in [

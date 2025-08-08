@@ -3,9 +3,7 @@ Client side utility functions
 '''
 import socket
 
-from .art import printc, expunged, redacted, granted, display_scp, no_response
-from .art import create_f, created_f, clearance_denied, invalid_f_type
-from .art import invalid_f_data, no_data_recvd
+from .art import *
 from .socket import ADDR, send, recv
 
 # for typedefing
@@ -243,8 +241,7 @@ def access(server: socket.socket, console: Console, type: str, file: str) -> Non
         # TODO
         print("NOT YET IMPLEMENTED")
     elif type == "SITE":
-        # TODO
-        print("NOT YET IMPLEMENTED")
+        display_site(f_data, console)
     elif type == "USER":
         # TODO
         print("NOT YET IMPLEMENTED") 
