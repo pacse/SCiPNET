@@ -60,7 +60,7 @@ if __name__ == "__main__":
                 client.create(server, split_request[1], usr.clearance_level_id)
 
             elif action == "ACCESS": # usr wants to access a file
-                client.access(server, console, split_request[1], "".join(split_request[2:]))
+                client.access(server, console, split_request[1], int(split_request[2]))
 
             elif action == "LOGOUT":
                 print("Logging out...")
@@ -69,6 +69,13 @@ if __name__ == "__main__":
 
             elif action in ["CLEAR", "CLS"]:
                 clear()
+
+            elif action == "HELP":
+                print("Valid commands:")
+                print("CREATE {filetype} - Creates a deepwell entry of the specified filetype")
+                print("ACCESS {filetype} {file_id} - Accesses the specified deepwell entry")
+                print("LOGOUT - Terminates the session")
+                print("CLEAR (CLS) - Clears the terminal screen")
 
             else:
                 print("INVALID COMMAND")
