@@ -1,13 +1,14 @@
 from os import get_terminal_size as gts
 from urllib.parse import unquote
-from rich.markdown import Markdown
+from rich.markdown import Markdown as Md
 from rich.console import Console
 from rich.text import Text
 from time import sleep as sp
 from random import uniform as uf
+from tabulate import tabulate
 
 from .basic import clear, timestamp
-from .sql import init_scp, User, SCP, get_name, get_colour
+from .sql import init_scp, User, SCP, Site, get_name, init_site
 
 # disable markdown_it logging
 import logging
@@ -342,12 +343,12 @@ def print_piped_line(console: Console,
                      string: str, 
                      side: str,
                      hex_colour: int | None = None,
-                     width: int = 58,
-                     outer_space: int = (SIZE - 120) // 2,
-                     default_colouring: bool = True) -> None:
+                     width = 58,
+                     outer_space = (SIZE - 120) // 2,
+                     default_colouring = True) -> None:
     
     # quick input validation
-    assert side in ["l", "r"], f"Invalid side choice {side!r}. Must be 'l' or 'r'"
+    assert side in ["l", "r", "c"], f"Invalid side choice {side!r}. Must be 'l' or 'r'"
 
     # calculate inner space
     inner_space = (width - len(string)) // 2
@@ -360,7 +361,7 @@ def print_piped_line(console: Console,
     
     # print left space
     if side == 'l':
-        print(f"{' ' * outer_space}║{' ' * inner_space}", end="")
+        print(f"{(' ' * outer_space)}║{' ' * inner_space}", end="")
 
         # extra space for centring
         if use_extra:
@@ -405,28 +406,31 @@ def print_piped_line(console: Console,
         print("║")
 
 
-def print_table(t_data: list[dict[str, Any]]) -> None:
-    max_len = 0
-    for key in t_data[0].keys():
-        if len(key) > max_len:
-            max_len = len(key)
-    
-    for row in t_data:
-        for value in row.values():
-            if len(value) > max_len:
-                max_len = len(value)
+def print_table(data: list[dict[str,str]]) -> None:
 
-    # important vars
-    columns = list(t_data[0].keys())
-    sep = "═" * (max_len + 2)
+    # Generate table with tabulate
+    table_str = tabulate(
+        data,
+        headers="keys",
+        tablefmt="fancy_grid",
+        stralign="center"
+    )
 
-    # now print the table
-    
-    # row 1
-    printc(f"╔{f'{sep}╤' * (len(columns) - 1)}{sep}╗")
-    
-    for row in t_data:
-        printc(f"║", end="")
+    # format table
+    table_str = (
+                table_str
+                .replace("│","║").replace("╡","╣")
+                .replace("╞","╠").replace("├","╟")
+                .replace("┤","╢").replace("╪","╬")
+                .replace("┼","╫").replace("╛","╝")
+                .replace("╘","╚").replace("╧","╩")
+                .replace("╕","╗").replace("╒","╔")
+                .replace("╤","╦").split("\n")
+                )
+
+    # print
+    for line in table_str:
+        print(line)
     
 
 def acs_bar(scp_info: SCP, console: Console) -> None:
@@ -468,11 +472,11 @@ def display_scp(data: dict[str, Any], console: Console) -> None:
     acs_bar(scp_info, console)
 
     # print Special Containment Procedures
-    md = Markdown(f"## Special Containment Procedures:\n\n{SCPs['main.md']}")
+    md = Md(f"## Special Containment Procedures\n\n{SCPs['main.md']}")
     console.print(md)
 
     # print description
-    md = Markdown(f"## Description:\n\n{descs['main.md']}")
+    md = Md(f"## Description\n\n{descs['main.md']}")
     console.print(md)
 
     # allow other file showing
@@ -532,7 +536,7 @@ def display_scp(data: dict[str, Any], console: Console) -> None:
                 if idx <= i:
                     # access file
                     name = a_names[idx]
-                    md = Markdown(f"## {unquote(name)}\n\n{addenda[name]}")
+                    md = Md(f"## {unquote(name)}\n\n{addenda[name]}")
                     console.print(md)
                     # don't offer it again
                     a_names.pop(idx)
@@ -541,7 +545,7 @@ def display_scp(data: dict[str, Any], console: Console) -> None:
                 elif idx <= j+i:
                     # access file
                     name = desc_names[idx-i-1]
-                    md = Markdown(f"## {unquote(name)}\n\n{addenda[name]}")
+                    md = Md(f"## {unquote(name)}\n\n{addenda[name]}")
                     console.print(md)
                     # don't offer it again
                     a_names.remove(name)
@@ -550,7 +554,7 @@ def display_scp(data: dict[str, Any], console: Console) -> None:
                 elif idx <= k+j+i:
                     # access file
                     name = SCP_names[idx-i-j-1]
-                    md = Markdown(f"## {unquote(name)}\n\n{addenda[name]}")
+                    md = Md(f"## {unquote(name)}\n\n{addenda[name]}")
                     console.print(md)
                     # don't offer it again
                     a_names.remove(name)
@@ -560,37 +564,58 @@ def display_scp(data: dict[str, Any], console: Console) -> None:
 
 
 # To display a site
-def site_bar(site_id: int, site_name: str, site_loc: str, console: Console) -> None:
+def site_bar(site_info: Site, site_loc: str, console: Console) -> None:
     print()
     printc(f"╔{REPEATED}═{REPEATED}╗")
-    printc(f"║{site_name:^119}║")
+    printc(f"║{site_info.name:^117}║")
     printc(f"╠{REPEATED}═{REPEATED}╣")
-    print_piped_line(console, f"ID: {site_id}", "l", default_colouring=False)
+    print_piped_line(console, f"ID: {site_info.id}", "l", width=28, default_colouring=False)
+    print_piped_line(console, f"Director: {site_info.director}", "c", width=29, default_colouring=False)
     print_piped_line(console, f"Location: {site_loc}", "r", default_colouring=False)
     printc(f"╚{REPEATED}═{REPEATED}╝")
-
+    print()
 
 def display_site(data: dict[str, Any], console: Console) -> None:
     '''
     Displays a site after requested by user
     '''
-    site_id = data["id"]
-    site_name = data["name"]
+    site_info = init_site(data["db_info"])
     site_loc = data["loc"]
     site_desc = data["desc"]
-    site_dossier = data["dossier"]
-    site_personnel = data["personnel"]
-    site_scps = data["scps"]
+
+    # stuff we show later
+    keys = []
+    for key in data.keys():
+        if key not in ["db_info","loc","desc"] and data[key]:
+            keys.append(key)
+
 
     # first display the site bar
-    site_bar(site_id, site_name, site_loc, console)
+    site_bar(site_info, site_loc, console)
 
-    console.print(f"##Description:\n{site_desc}")
+    console.print(Md(f"## Description\n\n{site_desc}"))
 
-    if site_dossier is not None:
-        console.print(f"##Dossier:\n{site_dossier}")
+    while True: # offer what we can show till f-close
 
-    console.print(f"##Site Personnel:")
-    print_table(site_personnel)
+        print() # spacing
+        print("Display addditional files?") if keys else print(end="")
 
-    console.print(f"##Contained Personnel:")
+        for i in range(len(keys)):
+            print(f"{i}: {keys[i]}")
+            
+        print("C: close file")
+
+        # get usr chice
+        choice = input("> ")
+
+        # handle choice
+        if choice.upper() == "C":
+            return
+        
+        try:
+            name = keys[int(choice)]
+            console.print(Md(f"## {name}\n\n{data[name]}"))
+            keys.remove(name)
+
+        except ValueError or IndexError:
+            continue

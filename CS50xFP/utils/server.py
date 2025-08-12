@@ -7,6 +7,7 @@ from typing import cast, Final as constant
 from dataclasses import asdict
 from pathlib import Path
 
+
 from .sql import db, User, init_usr, log_event, get_id, next_id
 from .socket import send, recv
 
@@ -336,7 +337,19 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
                 f_identifier = get_id(f"{f_type.lower()}s", f_identifier)
         
         # get file TODO: Utilize joins in query
-        data = db.execute(f"SELECT * FROM {f_type.lower()}s WHERE id = ?", f_identifier)[0]
+        if f_type == "SITE":
+            data = db.execute(f"""SELECT 
+                                  sites.id as site_id, 
+                                  sites.name as site_name, 
+                                  users.id as director_id, 
+                                  users.name as director_name
+                                  FROM sites
+                                  LEFT JOIN users on sites.director = users.id 
+                                  WHERE sites.id = ?""", f_identifier)[0]
+        
+        else:
+            data = db.execute(f"SELECT * FROM {f_type.lower()}s WHERE id = ?", f_identifier)[0]
+
     except IndexError:
         send(client, "EXPUNGED")
         log_event(usr.id,

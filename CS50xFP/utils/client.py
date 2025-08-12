@@ -242,6 +242,7 @@ def access(server: socket.socket, console: Console, type: str, file: str) -> Non
         print("NOT YET IMPLEMENTED")
     elif type == "SITE":
         display_site(f_data, console)
+        
     elif type == "USER":
         # TODO
         print("NOT YET IMPLEMENTED") 

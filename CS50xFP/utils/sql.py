@@ -107,19 +107,19 @@ def init_usr(info: dict[str, str | int | None]) -> User:
 
 
 @dataclass(slots=True)
-class SCP_COLOURS:
+class SCP_Colours:
     class_lvl: int
     cont_clss: int
     disrupt_clss: int
     rsk_clss: int
 
 def init_colours(classification_level: int, containment_class: int,
-                disruption_class: int, risk_class: int) -> SCP_COLOURS:
+                disruption_class: int, risk_class: int) -> SCP_Colours:
         '''
         Creates a SCP_COLOURS dataclass from
         deepwell values
         '''
-        return SCP_COLOURS(
+        return SCP_Colours(
             class_lvl = get_colour(classification_level),
             cont_clss = get_cc_colour(containment_class),
             disrupt_clss = get_colour(disruption_class),
@@ -140,7 +140,7 @@ class SCP:
     risk_class: str
     site_responsible_id: int | None
     assigned_task_force_name: str | None
-    colours: SCP_COLOURS
+    colours: SCP_Colours
 
 def init_scp(info: dict[str, str | int | None]) -> SCP:
     # TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -189,4 +189,21 @@ def init_scp(info: dict[str, str | int | None]) -> SCP:
             disruption_class = cast(int, info["disruption_class_id"]),
             risk_class = cast(int, info["risk_class_id"]),
         )
+    )
+
+
+@dataclass(slots=True)
+class Site:
+    id: int
+    name: str
+    director: str | None
+
+def init_site(info: dict[str, str | int | None]) -> Site:
+    # format director
+    director: str | None = f"{info["director_id"]} - {info["director_name"]}" if info["director_id"] is not None else "[REDACTED]"
+
+    return Site(
+        id = cast(int,info["site_id"]),
+        name = cast(str, info["site_name"]),
+        director = director
     )
