@@ -48,7 +48,7 @@ CREATE TABLE mtfs (
     )
 
 CREATE TABLE sites (
-    id INTEGER PRIMARY KEY NOT NULL,
+    id INTEGER PRIMARY KEY NOT NULL, -- Use positive for proper sites, negative for provisional sites
     name TEXT NOT NULL,
     director INTEGER,
     FOREIGN KEY(director) REFERENCES users(id)
