@@ -1,6 +1,10 @@
 '''
 Client
 '''
+from time import perf_counter as pc
+
+print("Initializing SCiPnet Terminal Session . . .")
+start = pc()
 
 import sys
 from rich.console import Console
@@ -21,6 +25,7 @@ QS = True if len(sys.argv) == 3 else False
 
 if __name__ == "__main__":
     with client.conn_to_server() as server:
+        print(f"Done. Took {pc()-start}s to initialise")
         if not QS:
             art.startup()  # print startup screen
         console = Console() # console to display markdown
