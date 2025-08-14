@@ -200,10 +200,32 @@ class Site:
 
 def init_site(info: dict[str, str | int | None]) -> Site:
     # format director
-    director: str | None = f"{info["director_id"]} - {info["director_name"]}" if info["director_id"] is not None else "[REDACTED]"
+    director: str | None = f"{info['director_id']} - {info['director_name']}" if info["director_id"] is not None else "[REDACTED]"
 
     return Site(
         id = cast(int,info["site_id"]),
         name = cast(str, info["site_name"]),
         director = director
+    )
+
+
+@dataclass(slots=True)
+class MTF:
+    id: int
+    name: str
+    nickname: str
+    leader_id: int | None
+    leader_name: str | None
+    site_id: int | None
+    active: bool
+
+def init_mtf(info: dict[str, str | int | None]) -> MTF:
+    return MTF(
+        id = cast(int, info["mtf_id"]),
+        name = cast(str, info["mtf_name"]),
+        nickname = cast(str, info["mtf_nickname"]),
+        leader_id = cast(int | None, info["leader_id"]),
+        leader_name = cast(str | None, info["leader_name"]),
+        site_id = cast(int | None, info["mtf_site_id"]),
+        active = cast(bool, info["mtf_active"])
     )
