@@ -8,7 +8,7 @@ from random import uniform as uf
 from tabulate import tabulate
 
 from .basic import clear, timestamp
-from .sql import init_scp, User, SCP, Site, get_name, init_site
+from .sql import init_scp, User, SCP, Site, MTF, get_name, init_site, init_mtf
 
 # disable markdown_it logging
 import logging
@@ -43,6 +43,7 @@ def print_lines(lines: list[str]) -> None:
     '''
     for line in lines:
         printc(line)
+
 
 def startup() -> None:
     '''
@@ -619,3 +620,36 @@ def display_site(data: dict[str, Any], console: Console) -> None:
 
         except ValueError or IndexError:
             continue
+
+
+def mtf_bar(mtf_info: MTF, console: Console) -> None:
+    print()
+    printc(f"╔{REPEATED}═{REPEATED}╗")
+    printc(f"║{f'MTF {mtf_info.name} {mtf_info.nickname!r} (MTF ID: {mtf_info.id})':^117}║")
+    printc(f"╠{REPEATED}═{REPEATED}╣")
+    print_piped_line(console, f"Assigned Site: Site-{mtf_info.site_id:02d}", "l", width=40, default_colouring=False)
+    print_piped_line(console, f"Leader: {mtf_info.leader_name} (Personnel ID: {mtf_info.leader_id})", "c", width=51, default_colouring=False)
+    print_piped_line(console, f"Active: {'Yes' if mtf_info.active else 'No'}", "r", width=25, default_colouring=False)
+    printc(f"╚{REPEATED}═{REPEATED}╝")
+    print()
+
+# ║        Assigned Site: Site-1123        ║     Leader: Glorbo Florbo (Personnel ID 3)      ║       Active: Yes       ║
+# ╠═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣ 
+
+# To display a MTF
+def display_mtf(data: dict[str, Any], console: Console) -> None:
+    '''
+    displays a MTF after a user 
+    receives MTF info from deepwell
+    '''
+    mtf_info = init_mtf(data["db_info"])
+    mission = data["mission"]
+    
+    # as always, display the bar first
+    mtf_bar(mtf_info, console)
+
+    # now print description
+    console.print(Md(f"## Mobile Task Force Mission\n\n{mission}"))
+
+    # and that's it!
+    print()

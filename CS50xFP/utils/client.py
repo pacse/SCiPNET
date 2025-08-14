@@ -16,7 +16,6 @@ def conn_to_server() -> socket.socket:
     '''
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect(ADDR) # connect to server
-    print("Connected . . .")
     return s
 
 
@@ -201,6 +200,7 @@ def create(server: socket.socket, f_type: str, c_lvl: int) -> None:
     elif all_clear == "CREATED":
         created_f(f_type)
 
+
 def access(server: socket.socket, console: Console, type: str, file: str) -> None:
     # TODO: remake to work with server.access()
 
@@ -238,8 +238,7 @@ def access(server: socket.socket, console: Console, type: str, file: str) -> Non
         display_scp(f_data, console)
 
     elif type == "MTF":
-        # TODO
-        print("NOT YET IMPLEMENTED")
+        display_mtf(f_data, console)
     elif type == "SITE":
         display_site(f_data, console)
         

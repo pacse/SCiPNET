@@ -309,10 +309,9 @@ def create(client: socket.socket, f_type: str, thread_id: int, usr: User) -> Non
         send(client, "INVALID FILE DATA")
         return
 
-
     # send created message to client
     send(client, "CREATED")
-    print("created file") # debug
+
 
 def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_id: int, usr: User) -> None:
     # TODO: validate
@@ -346,6 +345,19 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
                                   FROM sites
                                   LEFT JOIN users on sites.director = users.id 
                                   WHERE sites.id = ?""", f_identifier)[0]
+        
+        elif f_type == "MTF":
+            data = db.execute(f"""SELECT
+                                  mtfs.id as mtf_id,
+                                  mtfs.name as mtf_name,
+                                  mtfs.nickname as mtf_nickname,
+                                  users.id as leader_id,
+                                  users.name as leader_name,
+                                  mtfs.site_id as mtf_site_id,
+                                  mtfs.active as mtf_active
+                                  FROM mtfs
+                                  LEFT JOIN users on mtfs.leader = users.id
+                                  WHERE mtfs.id = ?""", f_identifier)[0]
         
         else:
             data = db.execute(f"SELECT * FROM {f_type.lower()}s WHERE id = ?", f_identifier)[0]
@@ -445,8 +457,8 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
     
     elif f_type == "MTF":
         if path.exists():
-            with open(path / "desc.md", "r", encoding="utf-8") as f:
-                response["desc"] = f.read()
+            with open(path / "mission.md", "r", encoding="utf-8") as f:
+                response["mission"] = f.read()
         else:
             log_event(usr.id,
                         "USR TRIED TO ACCESS MTF WITHOUT PATH",
