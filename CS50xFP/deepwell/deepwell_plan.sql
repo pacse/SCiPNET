@@ -39,8 +39,8 @@ CREATE TABLE mtfs (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL, -- eg. Epsilon-6
     nickname TEXT NOT NULL, -- eg. "Village Idiots"
-    leader INTEGER, -- probably null when ripped from wikidot
-    site_id INTEGER NOT NULL, -- site responsible for the MTF TODO: Implement in DB
+    leader_id INTEGER, -- probably null when ripped from wikidot TODO: _id in DB
+    site_id INTEGER, -- site responsible for the MTF TODO: Implement null possibility in DB
     active BOOLEAN DEFAULT TRUE NOT NULL,
 
     FOREIGN KEY(leader) REFERENCES users(id),

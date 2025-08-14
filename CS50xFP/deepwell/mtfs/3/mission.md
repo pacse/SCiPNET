@@ -1,0 +1,1 @@
+Mobile Task Force Alpha-1 is a task force that reports directly to the O5 Council and is used in situations that require the strictest operational security. The task force consists of the Foundation's best and most loyal operatives, and serves as the O5 Council's special operations unit. Further information regarding MTF Alpha-1 is classified Level 5.

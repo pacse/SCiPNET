@@ -1,0 +1,1 @@
+Specializes in the investigation, containment, and subsequent cleanup of anomalies in rural and suburban environments.
