@@ -14,4 +14,4 @@ INSERT INTO sites (id,name) VALUES
 */
 
 
-select * from mtfs;
+select * from clearance_levels;

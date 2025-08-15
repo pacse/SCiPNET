@@ -202,7 +202,6 @@ def create(server: socket.socket, f_type: str, c_lvl: int) -> None:
 
 
 def access(server: socket.socket, console: Console, type: str, file: str) -> None:
-    # TODO: remake to work with server.access()
 
     # send server access request
     send(server, f"ACCESS {type} {file}")
@@ -243,8 +242,7 @@ def access(server: socket.socket, console: Console, type: str, file: str) -> Non
         display_site(f_data, console)
         
     elif type == "USER":
-        # TODO
-        print("NOT YET IMPLEMENTED") 
+        display_user(f_data, console)
     else:
         # TODO: Better message
         printc(f"INVALID F_TYPE: {type!r}")

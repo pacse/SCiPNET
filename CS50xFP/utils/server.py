@@ -416,7 +416,7 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
         if descs_path.exists():
             for desc in os.listdir(descs_path):
                 with open(descs_path / desc, "r", encoding="utf-8") as f:
-                    descs[desc] = f.read()
+                    descs[desc.replace(".md", "")] = f.read()
         else:
             log_event(usr.id,
                         "USR TRIED TO ACCESS SCP WITHOUT DESC PATH",
@@ -431,7 +431,7 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
         if scps_path.exists():
             for scp in os.listdir(scps_path):
                 with open(scps_path / scp, "r", encoding="utf-8") as f:
-                    scps[scp] = f.read()
+                    scps[scp.replace(".md", "")] = f.read()
         else:
             log_event(usr.id,
                         "USR TRIED TO ACCESS SCP WITHOUT SCPs PATH",

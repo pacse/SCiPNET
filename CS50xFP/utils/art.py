@@ -8,7 +8,7 @@ from random import uniform as uf
 from tabulate import tabulate
 
 from .basic import clear, timestamp
-from .sql import init_scp, User, SCP, Site, MTF, get_name, init_site, init_mtf
+from .sql import init_scp, User, SCP, Site, MTF, get_name, init_site, init_mtf, init_usr
 
 # disable markdown_it logging
 import logging
@@ -434,6 +434,7 @@ def print_table(data: list[dict[str,str]]) -> None:
         print(line)
     
 
+# To display an SCP
 def acs_bar(scp_info: SCP, console: Console) -> None:
     '''
     prints a ACS header for an scp article
@@ -458,7 +459,7 @@ def acs_bar(scp_info: SCP, console: Console) -> None:
         print_piped_line(console, f"Site Responsible: [REDACTED]", "l", default_colouring=False)
     print_piped_line(console, f"Assigned MTF: {scp_info.assigned_task_force_name}", "r", default_colouring=False)
     printc(f"╚{REPEATED}╩{REPEATED}╝")
-    print(".")
+    print()
 
 def display_scp(data: dict[str, Any], console: Console) -> None:
     '''
@@ -473,21 +474,22 @@ def display_scp(data: dict[str, Any], console: Console) -> None:
     acs_bar(scp_info, console)
 
     # print Special Containment Procedures
-    md = Md(f"## Special Containment Procedures\n\n{SCPs['main.md']}")
+    md = Md(f"## Special Containment Procedures\n\n{SCPs['main']}")
     console.print(md)
 
     # print description
-    md = Md(f"## Description\n\n{descs['main.md']}")
+    md = Md(f"## Description\n\n{descs['main']}")
     console.print(md)
 
     # allow other file showing
     if addenda:
-        a_names: list[str] = [key.replace(".md","") for key in addenda.keys()]
+        a_names: list[str] = [key for key in addenda.keys()]
     else:
         a_names = []
     
-    desc_names: list[str] = [key.replace(".md","") for key in descs.keys() if key != "main.md"]
-    SCP_names: list[str] = [key.replace(".md","") for key in SCPs.keys() if key != "main.md"]
+    desc_names: list[str] = [key for key in descs.keys() if key != "main"]
+    SCP_names: list[str] = [key for key in SCPs.keys() if key != "main"]
+
 
     while True: # always offer more addenda after file access
 
@@ -504,19 +506,19 @@ def display_scp(data: dict[str, Any], console: Console) -> None:
             print("Display additional addenda?")
 
             # offer more addenda
-            for i, name in enumerate(a_names):
+            for i, name in enumerate(a_names, 1):
                 print(f"{i}: {unquote(name)}") # name is fname, so quoted
         
             # then descs
-            if len(desc_names) > 1: # ensure there are other descs
-                for j, name in enumerate(desc_names):
+            if len(desc_names) > 0: # ensure there are other descs
+                for j, name in enumerate(desc_names, 1):
                     # continue indexing from i
                     # (the # of addenda)
                     print(f"{j+i}: {unquote(name)}")
 
             # finally SCPs
-            if len(SCP_names) > 1:
-                for k, name in enumerate(SCP_names):
+            if len(SCP_names) > 0:
+                for k, name in enumerate(SCP_names, 1):
                     # continue indexing from i+j
                     # (the # of addenda + descs)
                     print(f"{k+j+i}: {unquote(name)}")
@@ -536,29 +538,32 @@ def display_scp(data: dict[str, Any], console: Console) -> None:
                 # addenda?
                 if idx <= i:
                     # access file
-                    name = a_names[idx]
+                    name = a_names[idx-1]
                     md = Md(f"## {unquote(name)}\n\n{addenda[name]}")
                     console.print(md)
                     # don't offer it again
-                    a_names.pop(idx)
+                    a_names.remove(name)
+                    i -= 1
                 
                 # desc?
                 elif idx <= j+i:
                     # access file
-                    name = desc_names[idx-i-1]
-                    md = Md(f"## {unquote(name)}\n\n{addenda[name]}")
+                    name = desc_names[idx-i-2]
+                    md = Md(f"## {unquote(name)}\n\n{descs[name]}")
                     console.print(md)
                     # don't offer it again
-                    a_names.remove(name)
+                    desc_names.remove(name)
+                    j -= 1
 
                 # SCP?
                 elif idx <= k+j+i:
                     # access file
-                    name = SCP_names[idx-i-j-1]
-                    md = Md(f"## {unquote(name)}\n\n{addenda[name]}")
+                    name = SCP_names[idx-i-j-2]
+                    md = Md(f"## {unquote(name)}\n\n{SCPs[name]}")
                     console.print(md)
                     # don't offer it again
-                    a_names.remove(name)
+                    SCP_names.remove(name)
+                    k -= 1
 
         except ValueError or IndexError:
             print(f"INVALID CHOICE: {inp!r}")
@@ -622,6 +627,7 @@ def display_site(data: dict[str, Any], console: Console) -> None:
             continue
 
 
+# To display a MTF
 def mtf_bar(mtf_info: MTF, console: Console) -> None:
     print()
     printc(f"╔{REPEATED}═{REPEATED}╗")
@@ -633,10 +639,6 @@ def mtf_bar(mtf_info: MTF, console: Console) -> None:
     printc(f"╚{REPEATED}═{REPEATED}╝")
     print()
 
-# ║        Assigned Site: Site-1123        ║     Leader: Glorbo Florbo (Personnel ID 3)      ║       Active: Yes       ║
-# ╠═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣ 
-
-# To display a MTF
 def display_mtf(data: dict[str, Any], console: Console) -> None:
     '''
     displays a MTF after a user 
@@ -653,3 +655,20 @@ def display_mtf(data: dict[str, Any], console: Console) -> None:
 
     # and that's it!
     print()
+
+
+# to display a user
+def user_bar(user_info: User, console: Console) -> None:
+    print()
+    printc(f"╔{REPEATED}═{REPEATED}╗")
+    printc(f"║{f'{user_info.title_name} {user_info.name} (ID: {user_info.id})':^117}║")
+    printc(f"╠{REPEATED}═{REPEATED}╣")
+    print_piped_line(console, f"Assigned Site: Site-{user_info.site_id:02d}", "l", default_colouring=False)
+    print_piped_line(console, f"Clearance Level: {user_info.clearance_level_name}", "r", default_colouring=False)
+    printc(f"╚{REPEATED}═{REPEATED}╝")
+    print()
+
+
+def display_user(data: dict[str, Any], console: Console) -> None:
+    # just a bar for now, no other files
+    user_bar(init_usr(data["db_info"]), console)

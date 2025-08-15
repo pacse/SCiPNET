@@ -85,7 +85,9 @@ class User:
     name: str
     password: str
     clearance_level_id: int
+    clearance_level_name: str
     title_id: int
+    title_name: str
     site_id: int
     override_phrase: str | None = None # not required for lower level personnel
 
@@ -96,13 +98,15 @@ def init_usr(info: dict[str, str | int | None]) -> User:
     '''
 
     return User(
-        cast(int, info["id"]),
-        cast(str, info["name"]),
-        cast(str, info["password"]),
-        cast(int, info["clearance_level_id"]),
-        cast(int, info["title_id"]),
-        cast(int, info["site_id"]),
-        cast(str | None, info["override_phrase"])
+        id = cast(int, info["id"]),
+        name = cast(str, info["name"]),
+        password = cast(str, info["password"]),
+        clearance_level_id = cast(int, info["clearance_level_id"]),
+        clearance_level_name = get_name("clearance_levels", cast(int, info["clearance_level_id"])),
+        title_id = cast(int, info["title_id"]),
+        title_name = get_name("titles", cast(int, info["title_id"])),
+        site_id = cast(int, info["site_id"]),
+        override_phrase = cast(str | None, info["override_phrase"])
       )
 
 
