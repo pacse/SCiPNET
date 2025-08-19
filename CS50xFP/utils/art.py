@@ -5,7 +5,9 @@ from rich.console import Console
 from rich.text import Text
 from time import sleep as sp
 from random import uniform as uf
-from tabulate import tabulate
+#from tabulate import tabulate
+def tabulate(*args, **kwags):
+    return ""
 
 from .basic import clear, timestamp
 from .sql import init_scp, User, SCP, Site, MTF, get_name, init_site, init_mtf, init_usr
@@ -466,19 +468,19 @@ def display_scp(data: dict[str, Any], console: Console) -> None:
     Displays a scp after requested by user
     '''
     scp_info = init_scp(data["db_info"])
-    descs: dict[str, str] = data["descs"]
-    SCPs: dict[str, str] = data["SCPs"]
+    desc: str = data["desc"]
+    cntainment_procedures: str = data["SCP"]
     addenda: dict[str, str] = data["addenda"]
 
     # print scp_info
     acs_bar(scp_info, console)
 
     # print Special Containment Procedures
-    md = Md(f"## Special Containment Procedures\n\n{SCPs['main']}")
+    md = Md(f"## Special Containment Procedures\n\n{SCP}")
     console.print(md)
 
     # print description
-    md = Md(f"## Description\n\n{descs['main']}")
+    md = Md(f"## Description\n\n{desc}")
     console.print(md)
 
     # allow other file showing
@@ -486,10 +488,6 @@ def display_scp(data: dict[str, Any], console: Console) -> None:
         a_names: list[str] = [key for key in addenda.keys()]
     else:
         a_names = []
-    
-    desc_names: list[str] = [key for key in descs.keys() if key != "main"]
-    SCP_names: list[str] = [key for key in SCPs.keys() if key != "main"]
-
 
     while True: # always offer more addenda after file access
 
@@ -501,27 +499,13 @@ def display_scp(data: dict[str, Any], console: Console) -> None:
         # spacing between last print
         print()
 
-        # check for remaining files
-        if a_names or desc_names or SCP_names:  
+        # check for remaining addenda
+        if a_names:  
             print("Display additional addenda?")
 
             # offer more addenda
-            for i, name in enumerate(a_names, 1):
+            for i, name in enumerate(a_names):
                 print(f"{i}: {unquote(name)}") # name is fname, so quoted
-        
-            # then descs
-            if len(desc_names) > 0: # ensure there are other descs
-                for j, name in enumerate(desc_names, 1):
-                    # continue indexing from i
-                    # (the # of addenda)
-                    print(f"{j+i}: {unquote(name)}")
-
-            # finally SCPs
-            if len(SCP_names) > 0:
-                for k, name in enumerate(SCP_names, 1):
-                    # continue indexing from i+j
-                    # (the # of addenda + descs)
-                    print(f"{k+j+i}: {unquote(name)}")
 
         print("C: close file")
 
@@ -532,38 +516,16 @@ def display_scp(data: dict[str, Any], console: Console) -> None:
             if inp.upper() == "C":
                 return
             else:
-                # what are they accessing
+                # get file index
                 idx = int(inp)
 
-                # addenda?
-                if idx <= i:
-                    # access file
-                    name = a_names[idx-1]
-                    md = Md(f"## {unquote(name)}\n\n{addenda[name]}")
-                    console.print(md)
-                    # don't offer it again
-                    a_names.remove(name)
-                    i -= 1
-                
-                # desc?
-                elif idx <= j+i:
-                    # access file
-                    name = desc_names[idx-i-2]
-                    md = Md(f"## {unquote(name)}\n\n{descs[name]}")
-                    console.print(md)
-                    # don't offer it again
-                    desc_names.remove(name)
-                    j -= 1
+                # access file & print
+                name = a_names[idx]
+                console.print(Md(f"## {unquote(name)}\n\n{addenda[name]}"))
 
-                # SCP?
-                elif idx <= k+j+i:
-                    # access file
-                    name = SCP_names[idx-i-j-2]
-                    md = Md(f"## {unquote(name)}\n\n{SCPs[name]}")
-                    console.print(md)
-                    # don't offer it again
-                    SCP_names.remove(name)
-                    k -= 1
+                # don't offer it again
+                a_names.remove(name)
+                i -= 1
 
         except ValueError or IndexError:
             print(f"INVALID CHOICE: {inp!r}")

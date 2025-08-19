@@ -366,7 +366,7 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
         send(client, "EXPUNGED")
         log_event(usr.id,
                   "USR TRIED TO ACCESS A EXPUNGED FILE",
-                  f"ATTEMPTED FILE: {f_type} {f_identifier}")
+                  f"ATTEMPTED FILE: {f_type} {f_identifier:03d}")
         return
     
     # validate usr clearance
@@ -410,35 +410,28 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
     # NOTE: None for usr
     if f_type == "SCP":
 
-        # get descs
-        descs = {}
-        descs_path = path / "descs"
-        if descs_path.exists():
-            for desc in os.listdir(descs_path):
-                with open(descs_path / desc, "r", encoding="utf-8") as f:
-                    descs[desc.replace(".md", "")] = f.read()
-        else:
+        # get desc
+        try:
+            with open(path / "desc.md", "r", encoding="utf-8") as f:
+                response["desc"] = f.read()
+
+        except OSError:
             log_event(usr.id,
                         "USR TRIED TO ACCESS SCP WITHOUT DESC PATH",
-                        f"ATTEMPTED SCP: {f_identifier}, PATH: {descs_path}")
+                        f"ATTEMPTED SCP: {f_identifier:03d}")
             send(client, "INVALID FILE DATA")
-        
-        response["descs"] = descs
 
-        # get SCPs
-        scps = {}
-        scps_path = path / "SCPs"
-        if scps_path.exists():
-            for scp in os.listdir(scps_path):
-                with open(scps_path / scp, "r", encoding="utf-8") as f:
-                    scps[scp.replace(".md", "")] = f.read()
-        else:
+        # get special containment procedures
+        try:
+            with open(path / "scps.md", "r", encoding="utf-8") as f:
+                response["SCP"] = f.read()
+
+        except OSError:
             log_event(usr.id,
                         "USR TRIED TO ACCESS SCP WITHOUT SCPs PATH",
-                        f"ATTEMPTED SCP: {f_identifier}, PATH: {scps_path}")
+                        f"ATTEMPTED SCP: {f_identifier:03d}")
             send(client, "INVALID FILE DATA")
         
-        response["SCPs"] = scps
 
         # get addenda
         addenda = {}
