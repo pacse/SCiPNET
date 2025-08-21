@@ -12,6 +12,4 @@ INSERT INTO sites (id,name) VALUES
 (5,'Site-05'),
 (6,'Humanoid Containment Site-06-3');
 */
-
-
-select * from clearance_levels;
+select * from sites

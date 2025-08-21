@@ -469,14 +469,14 @@ def display_scp(data: dict[str, Any], console: Console) -> None:
     '''
     scp_info = init_scp(data["db_info"])
     desc: str = data["desc"]
-    cntainment_procedures: str = data["SCP"]
+    cps: str = data["cps"]
     addenda: dict[str, str] = data["addenda"]
 
     # print scp_info
     acs_bar(scp_info, console)
 
     # print Special Containment Procedures
-    md = Md(f"## Special Containment Procedures\n\n{SCP}")
+    md = Md(f"## Special Containment Procedures\n\n{cps}")
     console.print(md)
 
     # print description

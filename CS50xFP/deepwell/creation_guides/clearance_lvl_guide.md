@@ -1,4 +1,4 @@
-### A simple guide to interperting foundation clearance levels from @AngryMan
+# A simple guide to interperting foundation clearance levels from @AngryMan
 * One: Anyone
 * Two: Anyone who isn't literally a new hire
 * Three: Anyone who has some level of control over others (managers, supervisors, team leads, etc.)
