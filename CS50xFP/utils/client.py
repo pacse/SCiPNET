@@ -2,6 +2,7 @@
 Client side utility functions
 '''
 import socket
+from werkzeug.security import generate_password_hash
 
 from .art import *
 from .socket import ADDR, send, recv
@@ -154,7 +155,7 @@ def create(server: socket.socket, f_type: str, c_lvl: int) -> None:
     elif f_type == "USER":
         file["name"] = input("Name\n>>> ")
         print()
-        file["password"] = input("Password\n>>> ")
+        file["password"] = generate_password_hash(input("Password\n>>> "))
         print()
 
         # show available clearance lvls
@@ -177,7 +178,11 @@ def create(server: socket.socket, f_type: str, c_lvl: int) -> None:
         print()
         file["site_id"] = int(input("Assigned Site (id)\n>>> "))
         print()
-        file["override_phrase"] = input("Override Phrase\n>>> ") if file["clearance_level_id"] >= 3 else "None"
+        # only clearance 3+ users get a phrase
+        if file["clearance_level_id"] >= 3:
+            file["override_phrase"] = generate_password_hash(input("Override Phrase\n>>> "))
+        else:
+            file["override_phrase"] = None
         print()
 
     # send to server

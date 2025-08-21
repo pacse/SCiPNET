@@ -3,10 +3,10 @@ Server side utility functions
 '''
 import os
 import socket
-from typing import cast, Final as constant
+from typing import cast
 from dataclasses import asdict
 from pathlib import Path
-
+from werkzeug.security import check_password_hash
 
 from .sql import db, User, init_usr, log_event, get_id, next_id
 from .socket import send, recv
@@ -23,14 +23,15 @@ VALID_F_TYPES = [
 ]
 
 # path to deepwell
-CS50xFP_PATH: constant = Path(__file__).resolve().parent.parent # constant bc path isn't all upper case
-DEEPWELL_PATH = CS50xFP_PATH / "deepwell"
+M_DIR_PATH = Path(__file__).resolve().parent.parent
+DEEPWELL_PATH = M_DIR_PATH / "deepwell"
 
 def valid_f_type(check: str) -> bool:
     if check in VALID_F_TYPES:
         return True
     else:
         return False
+
 
 def auth_usr(id: int, password: str) -> tuple[bool, User | None]:
     # TODO: Validate
@@ -40,9 +41,12 @@ def auth_usr(id: int, password: str) -> tuple[bool, User | None]:
     if DEBUG:
         print(f"Authenticating user {id!r} with password: {password!r}")
 
-    # authenticate user
-    row = db.execute("SELECT * FROM users WHERE id = ? AND password = ?", id, password) # get the dict from row 0, all ids are unique
-    if row: # sucess
+    # get id from database
+    row = db.execute("SELECT * FROM users WHERE id = ?", id)
+
+    # usr exists, check pw hash
+    if row and check_password_hash(row["password"], password):
+        # success
         usr = init_usr(row[0])
         if DEBUG:
             print(f"Sucess, returning: True, {usr}")
@@ -423,8 +427,8 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
 
         # get special containment procedures
         try:
-            with open(path / "scps.md", "r", encoding="utf-8") as f:
-                response["SCP"] = f.read()
+            with open(path / "cps.md", "r", encoding="utf-8") as f:
+                response["cps"] = f.read()
 
         except OSError:
             log_event(usr.id,
