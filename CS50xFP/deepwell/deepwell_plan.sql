@@ -99,7 +99,7 @@ CREATE TABLE titles (
 /*
 Deepwell folder structure:
 deepwell
-  ├─ SCiPNET.db
+  ├─ SCiPnet.db
   ├─ descs
   │ ├─ clearance_levels
 	│ │ ├─ 1.md # wikidot description of clearance level, matched with id
@@ -118,34 +118,25 @@ deepwell
   │ │ ├─ ...
 	├─ scps
   │ ├─ 001
-	│ │ ├─ cp.md # containment procedures with less chars
+	│ │ ├─ cps.md # containment procedures with less chars
 	│ │ ├─ desc.md # description
 	│ │ ├─ addenda
 	│ │ │ └─ 1.md # Addendum index (start at 1)
-	│ │ ├─ hist_cps # past containment procedures, updates when file changes (if still same scp) for narrative
-	│ │ │ └─ 1.md
-	│ │ └─ hist_descs # past descriptions, updates when file changes (if still same scp) for narrative
-	│ │   └─ 1.md
   │ └─ 002
-  │   └─ # same structure as 001
+  │   └─ ...
 	├─ sites
-  │ ├─ # site name, from deepwell
+  │ ├─ # site id, from deepwell
 	│ │ ├─ desc.md # site description
 	│ │ ├─ loc.md # site location
-	│ │ └─ security.md # site security details: Area monitoring (move to deepwell?)
+	│ │ ├─ security.md # site security details: Area monitoring (move to deepwell?)
 	│ │ └─ dossier.md # site dossier, any others?
-  │ └─ # other sites
+  │ └─ ...
 	├─ mtfs
   │ ├─ 1 # mtf id from deepwell
-	│ │ ├─ desc.md # mtf description
+	│ │ ├─ mission.md # mtf goal
 	│ │ └─ missions # all missions # classified, specified in filename
 	│ │   └─ 5-1.md # {classification level}-{mission index (start at 1)}
-  │ └─ # other mtfs
-	└─ users # any files associated with users
-    ├─ 1 # uid from deepwell
-	  │ ├─ projs.md # user projects, eg assigned scps, roles there, ect
-	  │ └─ standing.md # disciplinary history (out of clearance file access, ect)
-    └─ # other users
+  │ └─ ...
 
 └─ ├─ │
 
@@ -157,19 +148,24 @@ CREATE INDEX idx_users_name ON users(name)
 CREATE INDEX idx_users_clearance_level_id ON users(clearance_level_id)
 CREATE INDEX idx_users_site_id ON users(site_id)
 CREATE INDEX idx_users_title_id ON  users(title_id)
+
 -- scp indexes
 CREATE INDEX idx_scps_classification_level_id ON scps(classification_level_id)
 CREATE INDEX idx_scps_containment_class_id ON scps(containment_class_id)
 CREATE INDEX idx_scps_site_responsible_id ON scps(site_responsible_id)
 CREATE INDEX idx_scps_assigned_task_force_id ON scps(assigned_task_force_id)
 CREATE INDEX idx_scps_archived ON scps(archived)
+
 -- mtf index
 CREATE INDEX idx_mtfs_leader ON mtfs(leader)
+
 -- site index
 CREATE INDEX idx_sites_director ON sites(director)
+
 -- audit log indexes
-CREATE INDEX idx_audit_user_id ON audit_log(user_id);
+CREATE INDEX idx_audit_user_id ON audit_log(user_id)
 CREATE INDEX idx_audit_timestamp ON audit_log(timestamp)
+
 -- helper table indexes
 CREATE INDEX idx_clearance_levels_name ON clearance_levels(name)
 CREATE INDEX idx_containment_class_name ON containment_class(name)
