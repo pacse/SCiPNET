@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import cast
 
 # Deepwell database connection
-db = SQL("sqlite:///deepwell/SCiPNET.db")
+db = SQL("sqlite:///deepwell/SCiPnet.db")
 
 def next_id(table: str) -> int:
     '''
