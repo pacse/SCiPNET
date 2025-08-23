@@ -3,12 +3,12 @@
 CREATE TABLE users (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
-    password TEXT NOT NULL, -- add later: store securely (hashing + salting)
+    password TEXT NOT NULL, -- stored with werkzeug.security
     clearance_level_id INTEGER NOT NULL,
     title_id INTEGER NOT NULL,
     site_id INTEGER NOT NULL,
-    override_phrase TEXT, -- Override phrase, optional field (phrase -> override_phrase for clarity)
-    last_login DATETIME DEFAULT NULL,
+    override_phrase TEXT, -- Override phrase, optional field, also stored with werkzeug.security
+    last_login TEXT DEFAULT NULL,
 
     FOREIGN KEY(site_id) REFERENCES sites(id),
     FOREIGN KEY(clearance_level_id) REFERENCES clearance_levels(id),
@@ -24,7 +24,8 @@ CREATE TABLE scps (
     risk_class_id INTEGER,
     site_responsible_id INTEGER,
     assigned_task_force_id INTEGER,
-    status TEXT DEFAULT "active" CHECK(status IN ("active", "neutralized", "explained", "deleted")) NOT NULL -- Thanks ChatGPT for improving this from a bool :)
+
+    status TEXT DEFAULT 'active' CHECK(status IN ('active', 'neutralized', 'explained', 'deleted')) NOT NULL -- Thanks ChatGPT for improving this from a bool :)
 
     FOREIGN KEY(classification_level_id) REFERENCES clearance_levels(id),
     FOREIGN KEY(containment_class_id) REFERENCES containment_classes(id),
@@ -51,6 +52,7 @@ CREATE TABLE sites (
     id INTEGER PRIMARY KEY NOT NULL, -- Use positive for proper sites, negative for provisional sites
     name TEXT NOT NULL,
     director INTEGER,
+
     FOREIGN KEY(director) REFERENCES users(id)
     )
 
@@ -58,8 +60,10 @@ CREATE TABLE audit_log (
     id INTEGER PRIMARY KEY,
     user_id INTEGER NOT NULL,
     action TEXT NOT NULL, -- what happened (ie. login, file change, ect)
-    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-    details TEXT, -- optional additional details (eg. action description)
+    details TEXT NOT NULL, -- optional additional details (eg. action description)
+    user_ip TEXT NOT NULL, -- IP address taking the action
+    status BOOLEAN NOT NULL, -- success or failure of the action
+    timestamp TEXT NOT NULL,
 
     FOREIGN KEY(user_id) REFERENCES users(id)
     )
@@ -95,6 +99,11 @@ CREATE TABLE titles (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL, -- title (eg. site director, junior researcher, O5 council member)
     )
+
+CREATE TABLE colours (
+           id INTEGER PRIMARY KEY,
+           hex_code INTEGER
+           )
 
 /*
 Deepwell folder structure:
@@ -173,3 +182,4 @@ CREATE INDEX idx_secondary_class_name ON secondary_class(name)
 CREATE INDEX idx_disruption_class_name ON disruption_class(name)
 CREATE INDEX idx_risk_class_name ON risk_class(name)
 CREATE INDEX idx_titles_name ON titles(name)
+CREATE INDEX idx_colours_hex_code ON colours(hex_code)
