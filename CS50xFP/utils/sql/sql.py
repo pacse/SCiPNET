@@ -5,7 +5,7 @@ from cs50 import SQL
 from dataclasses import dataclass
 from typing import cast
 from pathlib import Path
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 
 # custom exception ╰(*°▽°*)╯
 from .exceptions import *
