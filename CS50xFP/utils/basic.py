@@ -20,10 +20,11 @@ def clear() -> None:
     else:
         system("clear")
 
+
 def timestamp() -> str:
   '''
-  gets the current timestamp
-  
-  format: Day/Month/Year - Hour/Minute/Second
+  Gets the current timestamp
+
+  Format: YYYY/MM/DD - HH/MM/SS
   '''
-  return dt.now().strftime("%d/%m/%Y - %H:%M:%S")
+  return dt.now().strftime("%Y/%m/%d - %H/%M/%S")
