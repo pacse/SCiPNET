@@ -10,7 +10,7 @@ def tabulate(*args, **kwags):
     return ""
 
 from .basic import clear, timestamp
-from .sql import init_scp, User, SCP, Site, MTF, get_name, init_site, init_mtf, init_usr
+from .sql.sql import init_scp, User, SCP, Site, MTF, get_name, init_site, init_mtf, init_usr
 
 # disable markdown_it logging
 import logging

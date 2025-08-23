@@ -8,7 +8,7 @@ from dataclasses import asdict
 from pathlib import Path
 from werkzeug.security import check_password_hash
 
-from .sql import db, User, init_usr, log_event, get_id, next_id
+from .sql.sql import db, User, init_usr, log_event, get_id, next_id
 from .socket import send, recv
 
 # enable/disable debug messages

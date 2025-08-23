@@ -10,7 +10,7 @@ import sys
 from rich.console import Console
 
 from utils import art
-from utils.sql import init_usr
+from CS50xFP.utils.sql.sql import init_usr
 from utils.socket import recv, send
 
 from utils.basic import clear
