@@ -2,10 +2,9 @@
 SQL stuff
 '''
 from cs50 import SQL
-from dataclasses import dataclass
-from typing import cast
+from typing import cast, Optional
 from pathlib import Path
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator, Field
 
 # custom exception ╰(*°▽°*)╯
 from .exceptions import *
@@ -39,11 +38,14 @@ def validate_table(table: str) -> bool:
     '''
     return table in VALID_TABLES
 
-
 # Deepwell database connection
 DB_PATH = (Path(__file__).parent.parent.parent / "deepwell" / "SCiPnet.db").resolve()
 
-db = SQL(f"sqlite:///{DB_PATH}")
+try:
+    db = SQL(f"sqlite:///{DB_PATH}")
+
+except RuntimeError:
+    raise DatabaseNotFoundError()
 
 
 def next_id(table_name: str) -> int:
@@ -163,7 +165,13 @@ def get_cc_colour(id: int) -> int:
     
 
 # Log events in the audit log (eg. account creation, login, file access, file edit, ect.)
-def log_event(user_id: int, action: str, details: str, user_ip: str, timestamp: str = timestamp(), status: bool = True) -> None:
+def log_event(user_id: int,
+              action: str,
+              details: str,
+              user_ip: str,
+              timestamp: str = timestamp(),
+              status: bool = True
+            ) -> None:
     '''
     Logs an event in the audit log
     '''
@@ -188,16 +196,16 @@ def log_event(user_id: int, action: str, details: str, user_ip: str, timestamp: 
     return db.execute(query, user_id, action, details, user_ip, timestamp, status)
 
 ''' 
-Dataclasses for ease of
-access for deepwell stuff 
+BaseModels for ease of
+access for deepwell stuff
 '''
-@dataclass(slots=True) # slots make it faster according to youtube ;)
-class User:
+
+class User(BaseModel):
     '''
     A dataclass to store user information after
     getting a user's data from the deepwell
     '''
-    id: int
+    u_id: int
     name: str
     password: str
     clearance_level_id: int
@@ -205,11 +213,12 @@ class User:
     title_id: int
     title_name: str
     site_id: int
-    override_phrase: str | None = None # not required for lower level personnel
+    override_phrase: Optional[str] = Field(None, description="Not required for lower level personnel")
+
 
 def init_usr(info: dict[str, str | int | None]) -> User:
     '''
-    Creates a user dataclass from
+    Creates a user BaseModel from
     the user's deepwell info
     '''
 
