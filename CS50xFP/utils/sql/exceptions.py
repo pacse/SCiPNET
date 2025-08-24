@@ -29,3 +29,10 @@ class RecordNotFoundError(DatabaseError):
     '''
     def __init__(self, table_name: str, lookup_field: str, lookup_value: str | int):
         super().__init__(f"Record with {lookup_field!r} = {lookup_value!r} does not exist in table {table_name!r}.")
+
+class DatabaseNotFoundError(DatabaseError):
+    '''
+    Exception raised when the SQLite database file is not found
+    '''
+    def __init__(self):
+        super().__init__("Database file not found.")
