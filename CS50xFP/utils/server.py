@@ -3,12 +3,11 @@ Server side utility functions
 '''
 import os
 import socket
-from typing import cast
-from dataclasses import asdict
+from typing import cast, Any
 from pathlib import Path
 from werkzeug.security import check_password_hash
 
-from .sql.sql import db, User, init_usr, log_event, get_id, next_id
+from .sql.sql import db, User, SCP_Colours, SCP, log_event, get_id, next_id, get_name, get_nickname, get_colour, get_cc_colour
 from .socket import send, recv
 
 # enable/disable debug messages
@@ -33,7 +32,7 @@ def valid_f_type(check: str) -> bool:
         return False
 
 
-def auth_usr(id: int, password: str) -> tuple[bool, User | None]:
+def auth_usr(id: int, password: str) -> tuple[bool, dict[str, Any] | None]:
     # TODO: Validate
     '''
     Authenticates a user by querying the deepwell
@@ -47,14 +46,14 @@ def auth_usr(id: int, password: str) -> tuple[bool, User | None]:
     # usr exists, check pw hash
     if row and check_password_hash(row["password"], password):
         # success
-        usr = init_usr(row[0])
+        deepwell_data = row[0]
         if DEBUG:
-            print(f"Sucess, returning: True, {usr}")
-        return True, usr # return True and a User dataclass
+            print(f"Sucess, returning: True, {row[0]}")
+        return True, row[0] # return True and info from deepwell
     else: # failure
         if DEBUG:
             print("Falure, returning: False, None")
-        return False, None # return False and None for User dataclass
+        return False, None # return False and None
 
 
 def create(client: socket.socket, f_type: str, thread_id: int, usr: User) -> None:
@@ -62,24 +61,27 @@ def create(client: socket.socket, f_type: str, thread_id: int, usr: User) -> Non
     # check if valid file type
     if not valid_f_type(f_type):
         send(client, ["INVALID FILETYPE", f_type])
-        log_event(usr.id,
+        log_event(usr.u_id,
                   "USR TRIED TO CREATE A INVALID FILE TYPE",
-                  f"ATTEMPTED TYPE: {f_type}")
+                  f"ATTEMPTED TYPE: {f_type}",
+                  usr.ip)
         return
 
     # check high enough clearance lvl
     if f_type == "USER" and usr.clearance_level_id < 2:
         send(client, ["CLEARANCE TOO LOW", 2, usr.clearance_level_id])
-        log_event(usr.id,
+        log_event(usr.u_id,
                   "USR TRIED TO CREATE A USER WITHOUT CLEARANCE",
-                  f"HAS CLEARANCE {usr.clearance_level_id}, NEEDS CLEARANCE 2")
+                  f"HAS CLEARANCE {usr.clearance_level_id}, NEEDS CLEARANCE 2",
+                  usr.ip)
         return
     
     elif f_type == "SITE" and usr.clearance_level_id < 3:
         send(client, ["CLEARANCE TOO LOW", 3, usr.clearance_level_id])
-        log_event(usr.id,
+        log_event(usr.u_id,
                   "USR TRIED TO CREATE A SITE WITHOUT CLEARANCE",
-                  f"HAS CLEARANCE {usr.clearance_level_id}, NEEDS CLEARANCE 3")
+                  f"HAS CLEARANCE {usr.clearance_level_id}, NEEDS CLEARANCE 3",
+                  usr.ip)
         return
 
     # give use all clear to begin rendering
@@ -114,8 +116,11 @@ def create(client: socket.socket, f_type: str, thread_id: int, usr: User) -> Non
     if not file:
         # tell client, log error, return
         send(client, "NO DATA RECEIVED")
-        log_event(usr.id,
-                  "NO FILE DATA RECEIVED DURING FILE CREATION")
+        log_event(usr.u_id,
+                  "NO FILE DATA RECEIVED DURING FILE CREATION",
+                  "", # no details needed
+                  usr.ip
+                )
         return
     
     # validate info
@@ -221,9 +226,11 @@ def create(client: socket.socket, f_type: str, thread_id: int, usr: User) -> Non
 
     except (AssertionError, KeyError, IndexError):
         send(client, "INVALID FILE DATA")
-        log_event(usr.id,
+        log_event(usr.u_id,
                     "INVALID FILE DATA RECEIVED DURING FILE CREATION",
-                    str(file))
+                    str(file),
+                    usr.ip
+                )
         return
         
     # YIPPEE! we got valid data 🎉
@@ -262,15 +269,19 @@ def create(client: socket.socket, f_type: str, thread_id: int, usr: User) -> Non
     
     except ValueError as e:
         send(client, "INVALID FILE DATA")
-        log_event(usr.id,
+        log_event(usr.u_id,
                     "INVALID FILE DATA RECEIVED DURING FILE CREATION",
-                    str(file))
+                    str(file),
+                    usr.ip
+                )
         return
 
     except Exception as e:
-        log_event(usr.id, 
+        log_event(usr.u_id, 
                   "ERROR INSERING INTO SQL DATABASE DURING FILE CREATION",
-                  str(e))
+                  str(e),
+                  usr.ip
+                )
         send(client, ["SQL ERROR", str(e)])
         return
 
@@ -322,9 +333,10 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
     # check if valid file type
     if not valid_f_type(f_type):
         send(client, ["INVALID FILETYPE", f_type])
-        log_event(usr.id,
+        log_event(usr.u_id,
                   "USR TRIED TO ACCESS A INVALID FILE TYPE",
-                  f"ATTEMPTED TYPE: {f_type}")
+                  f"ATTEMPTED TYPE: {f_type}",
+                  usr.ip)
         return
 
     # try to get file from sql database
@@ -368,27 +380,33 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
 
     except IndexError:
         send(client, "EXPUNGED")
-        log_event(usr.id,
+        log_event(usr.u_id,
                   "USR TRIED TO ACCESS A EXPUNGED FILE",
-                  f"ATTEMPTED FILE: {f_type} {f_identifier:03d}")
+                  f"ATTEMPTED FILE: {f_type} {f_identifier:03d}",
+                  usr.ip
+                )
         return
     
     # validate usr clearance
     if f_type == "USER" and\
     usr.clearance_level_id < data["clearance_level_id"]:
         send(client, ["REDACTED", data["clearance_level_id"], usr.clearance_level_id])
-        log_event(usr.id,
+        log_event(usr.u_id,
                   f"USR TRIED TO ACCESS USR {f_identifier} WITHOUT CLEARANCE",
-                  f"HAS CLEARANCE {usr.clearance_level_id}, NEEDS CLEARANCE {data['clearance_level_id']}")
+                  f"HAS CLEARANCE {usr.clearance_level_id}, NEEDS CLEARANCE {data['clearance_level_id']}",
+                  usr.ip
+                )
         return
     
     elif f_type == "SCP" and\
     usr.clearance_level_id < data["classification_level_id"]:
         
         send(client, ["REDACTED", data["classification_level_id"], usr.clearance_level_id])
-        log_event(usr.id,
+        log_event(usr.u_id,
                   f"USR TRIED TO ACCESS SCP {f_identifier} WITHOUT CLEARANCE",
-                  f"HAS CLEARANCE {usr.clearance_level_id}, NEEDS CLEARANCE {data['clearance_level_id']}")
+                  f"HAS CLEARANCE {usr.clearance_level_id}, NEEDS CLEARANCE {data['clearance_level_id']}",
+                  usr.ip
+                )
         return
     
     elif f_type == "SITE" and (
@@ -398,14 +416,59 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
     # must work there OR
     # must be over clearance level 3
         send(client, ["REDACTED", 3, usr.clearance_level_id])
-        log_event(usr.id,
+        log_event(usr.u_id,
                   f"USR TRIED TO ACCESS SITE {f_identifier} WITHOUT CLEARANCE",
-                  f"HAS CLEARANCE {usr.clearance_level_id}, NEEDS CLEARANCE 3")
+                  f"HAS CLEARANCE {usr.clearance_level_id}, NEEDS CLEARANCE 3",
+                  usr.ip
+                )
         return
 
     # YAY!!! 🎉 
     # We can build response
-    response = {"db_info":data}
+
+    # gather info for BaseModel
+    if f_type == "SCP":
+        # format atf name
+        atf_name = get_name("mtfs", cast(int, data["db_info"]["assigned_task_force_id"]))
+        atf_nickname = get_nickname(cast(int, data["db_info"]["assigned_task_force_id"]))
+        assigned_task_force_name = f"{atf_name} (*{atf_nickname}*)"
+
+        # generate scp_colours
+        scp_colours = SCP_Colours(
+            class_lvl = get_colour(data["db_info"]["classification_level_id"]),
+            cont_clss = get_cc_colour(data["db_info"]["containment_class_id"]),
+            disrupt_clss = get_colour(data["db_info"]["disruption_class_id"]),
+            rsk_clss = get_colour(data["db_info"]["risk_class_id"])
+        )
+
+        bm_info = {
+            "scp_id": data["db_info"]["id"],
+            "classification_level": get_name("clearance_levels", data["db_info"]["classification_level_id"]),
+            
+            "secondary_class": get_name("secondary_classes", data["db_info"]["secondary_class_id"]),
+            "disruption_class": get_name("disruption_classes", data["db_info"]["disruption_class_id"]),
+            "risk_class": get_name("risk_classes", data["db_info"]["risk_class_id"]),
+            "site_responsible_id": data["db_info"]["site_id"],
+            "assigned_task_force_name": assigned_task_force_name, 
+            "colours": scp_colours
+        }
+        
+        # generate BaseModel and convert to json
+        bm_info = SCP(**bm_info).model_dump_json()
+
+    elif f_type == "MTF":
+        pass #TODO
+
+    elif f_type == "SITE":
+        pass #TODO
+
+    elif f_type == "USER":
+        pass #TODO
+
+    else:
+        return #TODO
+
+    response = {"bm_info": bm_info}
 
     # build path to file
     path = (DEEPWELL_PATH / f"{f_type.lower()}s" / str(f_identifier)).resolve()
@@ -420,9 +483,11 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
                 response["desc"] = f.read()
 
         except OSError:
-            log_event(usr.id,
+            log_event(usr.u_id,
                         "USR TRIED TO ACCESS SCP WITHOUT DESC PATH",
-                        f"ATTEMPTED SCP: {f_identifier:03d}")
+                        f"ATTEMPTED SCP: {f_identifier:03d}",
+                        usr.ip
+                     )
             send(client, "INVALID FILE DATA")
 
         # get special containment procedures
@@ -431,9 +496,11 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
                 response["cps"] = f.read()
 
         except OSError:
-            log_event(usr.id,
+            log_event(usr.u_id,
                         "USR TRIED TO ACCESS SCP WITHOUT SCPs PATH",
-                        f"ATTEMPTED SCP: {f_identifier:03d}")
+                        f"ATTEMPTED SCP: {f_identifier:03d}",
+                        usr.ip
+                     )
             send(client, "INVALID FILE DATA")
         
 
@@ -445,9 +512,11 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
                 with open(addenda_path / addendum, "r", encoding="utf-8") as f:
                     addenda[addendum.replace(".md", "")] = f.read()
         else:
-            log_event(usr.id,
+            log_event(usr.u_id,
                         "USR TRIED TO ACCESS SCP WITHOUT ADDENDA PATH",
-                        f"ATTEMPTED SCP: {f_identifier}, PATH: {addenda_path}")
+                        f"ATTEMPTED SCP: {f_identifier}, PATH: {addenda_path}",
+                        usr.ip
+                     )
             send(client, "INVALID FILE DATA")
         
         response["addenda"] = addenda
@@ -457,9 +526,11 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
             with open(path / "mission.md", "r", encoding="utf-8") as f:
                 response["mission"] = f.read()
         else:
-            log_event(usr.id,
+            log_event(usr.u_id,
                         "USR TRIED TO ACCESS MTF WITHOUT PATH",
-                        f"ATTEMPTED MTF: {f_identifier}, PATH: {path}")
+                        f"ATTEMPTED MTF: {f_identifier}, PATH: {path}",
+                        usr.ip
+                     )
             send(client, "INVALID FILE DATA")
             return
 
@@ -477,9 +548,11 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
             except FileNotFoundError:
                 response["dossier"] = None
         else:
-            log_event(usr.id,
+            log_event(usr.u_id,
                         "USR TRIED TO ACCESS SITE WITHOUT PATH",
-                        f"ATTEMPTED SITE: {f_identifier}, PATH: {path}")
+                        f"ATTEMPTED SITE: {f_identifier}, PATH: {path}",
+                        usr.ip
+                     )
             send(client, "INVALID FILE DATA")
             return
         
@@ -510,7 +583,7 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
     send(client, ["GRANTED", response])
 
 
-def handle_usr(client: socket.socket, addr, thread_id: int) -> None:
+def handle_usr(client: socket.socket, ip: str, thread_id: int) -> None:
     '''
     Function for threads after a user connects to the server
     '''
@@ -546,21 +619,27 @@ def handle_usr(client: socket.socket, addr, thread_id: int) -> None:
             client.close()
             return
         
-        valid, usr = auth_usr(split_data[1], split_data[2]) # if valid, usr is a User class
+        valid, usr = auth_usr(split_data[1], split_data[2]) # if valid, usr is user info from the deepwell
         
         if not valid:
             send(client, (False, None))
-            log_event(-1, "login", f"Failed login attempt from {addr[0]}:{addr[1]} with id {split_data[1]!r} and password {split_data[2]!r}") # log to audit log TODO: Null usr
+            log_event(-1, "login", f"Failed login attempt with id {split_data[1]!r} and password {split_data[2]!r}", ip) # log to audit log TODO: Null usr
             client.close()
             return
         else:
-            usr = cast(User, usr) # tell type checking usr is a User class
+            # update type checking & add args to usr
+            usr = cast(dict[str, Any], usr)
+            usr["clearance_level_name"] = get_name("clearance_levels", usr["clearance_level_id"])
+            usr["title_name"] = get_name("titles", usr["title_id"])
+            usr["ip"] = ip
+
+            # convert usr to a User BaseModel
+            usr = User(**usr)
         
         # fully authenticated
-        print(f"[HANDLE USER] sending: (True, {asdict(usr)})")
-        send(client, (True, asdict(usr)))
-        log_event(usr.id, "login", f"User {usr.name} logged in from {addr[0]}:{addr[1]}") # log to audit log
-        
+        print(f"[HANDLE USER] sending: (True, {usr.model_dump_json()})")
+        send(client, (True, usr.model_dump_json()))
+
         # normal server-client back and forth
         while True:
             try:
