@@ -10,7 +10,7 @@ def tabulate(*args, **kwags):
     return ""
 
 from .basic import clear, timestamp
-from .sql.sql import init_scp, User, SCP, Site, MTF, get_name, init_site, init_mtf, init_usr
+from .sql.sql import User, SCP, Site, MTF, get_name
 
 # disable markdown_it logging
 import logging
@@ -447,7 +447,7 @@ def acs_bar(scp_info: SCP, console: Console) -> None:
 
     print()
     printc(f"╔{REPEATED}╦{REPEATED}╗")
-    print_piped_line(console, f"Item #: SCP-{scp_info.id:03d}", "l", default_colouring=False)
+    print_piped_line(console, f"Item #: SCP-{scp_info.scp_id:03d}", "l", default_colouring=False)
     print_piped_line(console, f"Classification Level: {scp_info.classification_level}", "r", scp_info.colours.class_lvl)
     printc(f"╠{REPEATED}╬{REPEATED}╣")
     print_piped_line(console, f"Containment Class: {scp_info.containment_class}", "l", scp_info.colours.cont_clss)
@@ -467,7 +467,7 @@ def display_scp(data: dict[str, Any], console: Console) -> None:
     '''
     Displays a scp after requested by user
     '''
-    scp_info = init_scp(data["db_info"])
+    scp_info = SCP(**data["BM_info"])
     desc: str = data["desc"]
     cps: str = data["cps"]
     addenda: dict[str, str] = data["addenda"]
