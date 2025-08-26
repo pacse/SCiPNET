@@ -1,5 +1,8 @@
+# only for web scrapers
 bs4
 requests
+
 cs50
 rich
 pydantic
+sqlalchemy # server side
