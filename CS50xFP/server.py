@@ -20,8 +20,11 @@ def main():
         while True: # for each connection
             try:
                 conn, addr = server.accept() # accept it
-                print(f"Connection from {addr[0]}:{addr[1]}, Thread ID: {active_count() - 1}")
-                thread = Thread(target=handle_usr, args=(conn, addr, active_count() - 1)) # init thread with zero-indexed thread id
+                
+                ip = f"{addr[0]}:{addr[1]}" # conn ip
+
+                print(f"Connection from {ip}, Thread ID: {active_count() - 1}")
+                thread = Thread(target=handle_usr, args=(conn, ip, active_count() - 1)) # init thread with zero-indexed thread id
                 thread.start() # start thread
                 print(f"Active connections: {active_count() - 1}")
             except KeyboardInterrupt:
