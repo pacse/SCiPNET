@@ -2,7 +2,7 @@
 SQL stuff
 '''
 from cs50 import SQL
-from typing import cast, Optional
+from typing import cast
 from pathlib import Path
 from pydantic import BaseModel, field_validator, Field
 
@@ -29,7 +29,7 @@ VALID_TABLES = [
     "colours"
 ]
 
-
+# checks `table` against valid_tables
 def validate_table(table: str) -> bool:
     '''
     Validate the table name against the list of valid tables.
@@ -58,13 +58,15 @@ def next_id(table_name: str) -> int:
     if not validate_table(table_name):
         raise TableNotFoundError(table_name)
 
+    # use COALESCE to prevent NULL for empty tables
+    query = f"SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM {table_name}"
+
     try:
-        query = f"SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM {table_name}" # use COALESCE to prevent NULL for empty tables
         return db.execute(query)[0]["next_id"]
 
     except Exception as e:
         raise DatabaseError(
-            f"Failed to retrieve next ID from {table_name!r}:\n{e}"
+            f"Failed to retrieve next ID from {table_name!r}:\n{e}\nQuery used: {query!r}"
         )
 
 
@@ -202,8 +204,8 @@ access for deepwell stuff
 
 class User(BaseModel):
     '''
-    A dataclass to store user information after
-    getting a user's data from the deepwell
+    A BaseModel to store user information
+    after getting their data from the deepwell
     '''
     u_id: int
     name: str
@@ -213,17 +215,20 @@ class User(BaseModel):
     title_id: int
     title_name: str
     site_id: int
-    override_phrase: Optional[str] = Field(None, description="Not required for lower level personnel")
+    ip: str # the ip that the user has connected from
+    override_phrase: str | None = Field(None, description="Not required for lower level personnel")
 
-
+# TODO: Remake
 def init_usr(info: dict[str, str | int | None]) -> User:
+    pass
+    """
     '''
     Creates a user BaseModel from
     the user's deepwell info
     '''
 
     return User(
-        id = cast(int, info["id"]),
+        u_id = cast(int, info["id"]),
         name = cast(str, info["name"]),
         password = cast(str, info["password"]),
         clearance_level_id = cast(int, info["clearance_level_id"]),
@@ -233,16 +238,20 @@ def init_usr(info: dict[str, str | int | None]) -> User:
         site_id = cast(int, info["site_id"]),
         override_phrase = cast(str | None, info["override_phrase"])
       )
+"""
 
-
-@dataclass(slots=True)
-class SCP_Colours:
+class SCP_Colours(BaseModel):
+    '''
+    BaseModel to store hex colour codes 
+    (as ints) for the display of an SCP
+    '''
     class_lvl: int
     cont_clss: int
     disrupt_clss: int
     rsk_clss: int
 
-def init_colours(classification_level: int, containment_class: int,
+# TODO: Remake
+"""def init_colours(classification_level: int, containment_class: int,
                 disruption_class: int, risk_class: int) -> SCP_Colours:
         '''
         Creates a SCP_COLOURS dataclass from
@@ -254,24 +263,27 @@ def init_colours(classification_level: int, containment_class: int,
             disrupt_clss = get_colour(disruption_class),
             rsk_clss = get_colour(risk_class)
         )
+"""
 
-@dataclass(slots=True)
-class SCP:
+class SCP(BaseModel):
     '''
-    A dataclass to store scp information after
-    getting a scp's data from the deepwell
+    A dataclass to store a SCP's information
+    after getting its data from the deepwell
     '''
-    id: int
+    scp_id: int
     classification_level: str
     containment_class: str
-    secondary_class: str | None
+    secondary_class: str | None = None
     disruption_class: str
     risk_class: str
-    site_responsible_id: int | None
-    assigned_task_force_name: str | None
+    site_responsible_id: int | None = None
+    assigned_task_force_name: str | None = None
     colours: SCP_Colours
 
+# TODO: Remake
 def init_scp(info: dict[str, str | int | None]) -> SCP:
+    pass
+    """
     # TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!
     # handle null values properly you lazy cabrone (╯°□°）╯︵ ┻━┻
     '''
@@ -319,36 +331,40 @@ def init_scp(info: dict[str, str | int | None]) -> SCP:
             risk_class = cast(int, info["risk_class_id"]),
         )
     )
+"""
 
-
-@dataclass(slots=True)
 class Site:
-    id: int
+    s_id: int
     name: str
-    director: str | None
+    director: str | None = None
 
+# TODO: Remake
 def init_site(info: dict[str, str | int | None]) -> Site:
+    pass
+    """
     # format director
     director: str | None = f"{info['director_id']} - {info['director_name']}" if info["director_id"] is not None else "[REDACTED]"
 
     return Site(
-        id = cast(int,info["site_id"]),
+        s_id = cast(int,info["site_id"]),
         name = cast(str, info["site_name"]),
         director = director
     )
+"""
 
-
-@dataclass(slots=True)
 class MTF:
-    id: int
+    mtf_id: int
     name: str
     nickname: str
-    leader_id: int | None
-    leader_name: str | None
-    site_id: int | None
+    leader_id: int | None = None
+    leader_name: str | None = None
+    site_id: int | None = None
     active: bool
 
+# TODO: Remake
 def init_mtf(info: dict[str, str | int | None]) -> MTF:
+    pass
+    """
     return MTF(
         id = cast(int, info["mtf_id"]),
         name = cast(str, info["mtf_name"]),
@@ -357,4 +373,4 @@ def init_mtf(info: dict[str, str | int | None]) -> MTF:
         leader_name = cast(str | None, info["leader_name"]),
         site_id = cast(int | None, info["mtf_site_id"]),
         active = cast(bool, info["mtf_active"])
-    )
+    )"""
