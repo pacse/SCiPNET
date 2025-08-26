@@ -10,7 +10,7 @@ import sys
 from rich.console import Console
 
 from utils import art
-from CS50xFP.utils.sql.sql import init_usr
+from utils.sql.sql import User
 from utils.socket import recv, send
 
 from utils.basic import clear
@@ -52,7 +52,7 @@ if __name__ == "__main__":
             sys.exit()
 
         else: # valid auth
-            usr = init_usr(result[1])
+            usr = User(**result[1])
             art.login(usr)
 
         # main loop
