@@ -29,20 +29,20 @@ for collapse in sieved_soup.find_all("div", class_="collapsible-block"):
 with open("sites.html", "w", encoding="utf-8") as f:
     f.write(str(sieved_soup))
 
-# get site 
+# get site
 print("Getting site info . . .")
 
 sites = []
 
 for site in sieved_soup.find_all("div", class_="socontent"):
-    # === gather info ===
+    # ==== gather info ====
     site_info = { # what we append to sites
         "name":"",
         "loc":"",
         "desc":""
     }
     site = cast(BeautifulSoup, site)
-    
+
     # get site name
     s_name = site.find("h1")
     if s_name:
@@ -51,7 +51,7 @@ for site in sieved_soup.find_all("div", class_="socontent"):
 
     else:
         print(f"WARNING: NO SITE NAME FOUND\nSite soup:\n{site}")
-    
+
     # get p tags
     p = site.find_all("p")
 
@@ -92,7 +92,7 @@ for i, site in enumerate(sites):
     # make syntax happy
     if i != len(sites) - 1:
         f.write(",")
-        
+
     f.write("\n")
 
 f.write("]") # make syntax happy

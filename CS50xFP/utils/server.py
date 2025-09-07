@@ -57,7 +57,7 @@ def auth_usr(id: int, password: str) -> tuple[bool, dict[str, Any] | None]:
 
 
 def create(client: socket.socket, f_type: str, thread_id: int, usr: User) -> None:
-    
+
     # check if valid file type
     if not valid_f_type(f_type):
         send(client, ["INVALID FILETYPE", f_type])
@@ -75,7 +75,7 @@ def create(client: socket.socket, f_type: str, thread_id: int, usr: User) -> Non
                   f"HAS CLEARANCE {usr.clearance_level_id}, NEEDS CLEARANCE 2",
                   usr.ip)
         return
-    
+
     elif f_type == "SITE" and usr.clearance_level_id < 3:
         send(client, ["CLEARANCE TOO LOW", 3, usr.clearance_level_id])
         log_event(usr.u_id,
@@ -122,7 +122,7 @@ def create(client: socket.socket, f_type: str, thread_id: int, usr: User) -> Non
                   usr.ip
                 )
         return
-    
+
     # validate info
     try:
         if f_type == "SCP":
@@ -202,7 +202,7 @@ def create(client: socket.socket, f_type: str, thread_id: int, usr: User) -> Non
 
             # check k:v pair
             assert file["director"] in range(1, next_id("users"))
-    
+
         elif f_type == "USER":
             # check types and keys
             assert isinstance(file, dict)
@@ -232,41 +232,41 @@ def create(client: socket.socket, f_type: str, thread_id: int, usr: User) -> Non
                     usr.ip
                 )
         return
-        
+
     # YIPPEE! we got valid data 🎉
     print("File data is valid, proceeding...") # debug
 
-    # try to insert into deepwell 
+    # try to insert into deepwell
     # if get an error, tell usr
     try:
         if f_type == "SCP":
             db.execute("""INSERT INTO scps (id, classification_level_id,
-                    containment_class_id, secondary_class_id, 
+                    containment_class_id, secondary_class_id,
                     disruption_class_id, risk_class_id, site_responsible_id,
-                    assigned_task_force_id) VALUES (?,?,?,?,?,?,?,?)""", 
-                    file["id"], file["classification_level_id"], 
+                    assigned_task_force_id) VALUES (?,?,?,?,?,?,?,?)""",
+                    file["id"], file["classification_level_id"],
                     file["containment_class_id"], file["secondary_class_id"],
-                    file["disruption_class_id"], file["risk_class_id"], 
+                    file["disruption_class_id"], file["risk_class_id"],
                     file["site_responsible_id"], file["atf_id"])
-        
+
         elif f_type == "MTF":
             db.execute("""INSERT INTO mtfs (name, nickname,
-                    leader) VALUES (?,?,?)""", 
+                    leader) VALUES (?,?,?)""",
                     file["name"], file["nickname"], file["leader"])
 
         elif f_type == "SITE":
             db.execute("""INSERT INTO sites (name,director)
                        VALUES (?,?)""",
                        file["name"], file["director"])
-            
+
         elif f_type == "USER":
             db.execute("""INSERT INTO users (name,password,
                        clearance_level_id,title_id,site_id,override_phrase)
                        VALUES (?,?,?,?,?,?)""",
-                       file["name"], file["password"], 
+                       file["name"], file["password"],
                        file["clearance_level_id"], file["title_id"],
                        file["site_id"], file["override_phrase"])
-    
+
     except ValueError as e:
         send(client, "INVALID FILE DATA")
         log_event(usr.u_id,
@@ -277,7 +277,7 @@ def create(client: socket.socket, f_type: str, thread_id: int, usr: User) -> Non
         return
 
     except Exception as e:
-        log_event(usr.u_id, 
+        log_event(usr.u_id,
                   "ERROR INSERING INTO SQL DATABASE DURING FILE CREATION",
                   str(e),
                   usr.ip
@@ -350,18 +350,18 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
 
             except ValueError: # if not int, get id from db
                 f_identifier = get_id(f"{f_type.lower()}s", f_identifier)
-        
+
         # get file TODO: Utilize joins in query
         if f_type == "SITE":
-            data = db.execute(f"""SELECT 
-                                  sites.id as site_id, 
-                                  sites.name as site_name, 
-                                  users.id as director_id, 
+            data = db.execute(f"""SELECT
+                                  sites.id as site_id,
+                                  sites.name as site_name,
+                                  users.id as director_id,
                                   users.name as director_name
                                   FROM sites
-                                  LEFT JOIN users on sites.director = users.id 
+                                  LEFT JOIN users on sites.director = users.id
                                   WHERE sites.id = ?""", f_identifier)[0]
-        
+
         elif f_type == "MTF":
             data = db.execute(f"""SELECT
                                   mtfs.id as mtf_id,
@@ -374,7 +374,7 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
                                   FROM mtfs
                                   LEFT JOIN users on mtfs.leader = users.id
                                   WHERE mtfs.id = ?""", f_identifier)[0]
-        
+
         else:
             data = db.execute(f"SELECT * FROM {f_type.lower()}s WHERE id = ?", f_identifier)[0]
 
@@ -386,7 +386,7 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
                   usr.ip
                 )
         return
-    
+
     # validate usr clearance
     if f_type == "USER" and\
     usr.clearance_level_id < data["clearance_level_id"]:
@@ -397,10 +397,10 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
                   usr.ip
                 )
         return
-    
+
     elif f_type == "SCP" and\
     usr.clearance_level_id < data["classification_level_id"]:
-        
+
         send(client, ["REDACTED", data["classification_level_id"], usr.clearance_level_id])
         log_event(usr.u_id,
                   f"USR TRIED TO ACCESS SCP {f_identifier} WITHOUT CLEARANCE",
@@ -408,11 +408,11 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
                   usr.ip
                 )
         return
-    
+
     elif f_type == "SITE" and (
     usr.clearance_level_id < 3 and
     usr.site_id != f_identifier):
-    # site access requirements: 
+    # site access requirements:
     # must work there OR
     # must be over clearance level 3
         send(client, ["REDACTED", 3, usr.clearance_level_id])
@@ -423,7 +423,7 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
                 )
         return
 
-    # YAY!!! 🎉 
+    # YAY!!! 🎉
     # We can build response
 
     # gather info for BaseModel
@@ -444,15 +444,15 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
         bm_info = {
             "scp_id": data["db_info"]["id"],
             "classification_level": get_name("clearance_levels", data["db_info"]["classification_level_id"]),
-            
+
             "secondary_class": get_name("secondary_classes", data["db_info"]["secondary_class_id"]),
             "disruption_class": get_name("disruption_classes", data["db_info"]["disruption_class_id"]),
             "risk_class": get_name("risk_classes", data["db_info"]["risk_class_id"]),
             "site_responsible_id": data["db_info"]["site_id"],
-            "assigned_task_force_name": assigned_task_force_name, 
+            "assigned_task_force_name": assigned_task_force_name,
             "colours": scp_colours
         }
-        
+
         # generate BaseModel and convert to json
         bm_info = SCP(**bm_info).model_dump_json()
 
@@ -502,7 +502,7 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
                         usr.ip
                      )
             send(client, "INVALID FILE DATA")
-        
+
 
         # get addenda
         addenda = {}
@@ -518,9 +518,9 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
                         usr.ip
                      )
             send(client, "INVALID FILE DATA")
-        
+
         response["addenda"] = addenda
-    
+
     elif f_type == "MTF":
         if path.exists():
             with open(path / "mission.md", "r", encoding="utf-8") as f:
@@ -555,7 +555,7 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
                      )
             send(client, "INVALID FILE DATA")
             return
-        
+
         # get personnel
         personnel = db.execute("""SELECT users.id as u_id,
                                users.name as u_name,
@@ -568,10 +568,10 @@ def access(client: socket.socket, f_type: str, f_identifier: int | str, thread_i
 
         # get scps TODO: Utilize joins in query
         scps = db.execute("""SELECT id, containment_class_id, secondary_class_id,
-                          disruption_class_id, risk_class_id FROM scps 
+                          disruption_class_id, risk_class_id FROM scps
                           WHERE site_responsible_id = ? and classification_level_id <= ?""",
                           f_identifier, usr.clearance_level_id)
-        
+
         # and mtfs
         mtfs = db.execute("SELECT * FROM mtfs WHERE site_id = ?", f_identifier)
 
@@ -595,7 +595,7 @@ def handle_usr(client: socket.socket, ip: str, thread_id: int) -> None:
             print(f"[THREAD {thread_id}] ERROR: No auth received from client, closing connection")
             client.close()
             return
-        
+
         split_data: list[str | int] = data.split() # decode data
 
         # validate types
@@ -603,6 +603,7 @@ def handle_usr(client: socket.socket, ip: str, thread_id: int) -> None:
             split_data[0] = str(split_data[0])
             split_data[1] = int(split_data[1])
             split_data[2] = str(split_data[2])
+
         except ValueError:
             print(f"[THREAD {thread_id}] ERROR: Invalid auth request: {split_data}")
             send(client, False)
@@ -618,9 +619,9 @@ def handle_usr(client: socket.socket, ip: str, thread_id: int) -> None:
             send(client, False)
             client.close()
             return
-        
+
         valid, usr = auth_usr(split_data[1], split_data[2]) # if valid, usr is user info from the deepwell
-        
+
         if not valid:
             send(client, (False, None))
             log_event(-1, "login", f"Failed login attempt with id {split_data[1]!r} and password {split_data[2]!r}", ip) # log to audit log TODO: Null usr
@@ -635,7 +636,7 @@ def handle_usr(client: socket.socket, ip: str, thread_id: int) -> None:
 
             # convert usr to a User BaseModel
             usr = User(**usr)
-        
+
         # fully authenticated
         print(f"[HANDLE USER] sending: (True, {usr.model_dump_json()})")
         send(client, (True, usr.model_dump_json()))
@@ -648,7 +649,7 @@ def handle_usr(client: socket.socket, ip: str, thread_id: int) -> None:
                 print(f"[THREAD {thread_id}] Connection terminated")
                 client.close() # close connection
                 return
-            
+
             if not data:
                 print(f"[THREAD {thread_id}] No data received, closing connection")
                 client.close()
@@ -658,11 +659,11 @@ def handle_usr(client: socket.socket, ip: str, thread_id: int) -> None:
 
             print(f"[THREAD {thread_id}] Data received: {split_data}")
 
-            ''' 
+            '''
             TODO: what did the user want to do:
                 * ACCESS file_ref
-                    * SCP id/name | eg. 001 or SD Locke's Proposal would be valid. 
-                        NOTE: just accessing 001 would result in a random proposal, 
+                    * SCP id/name | eg. 001 or SD Locke's Proposal would be valid.
+                        NOTE: just accessing 001 would result in a random proposal,
                         but if proposal is specified then use specified proposal
                     * USER id/name | eg. 0 to access info for user with id 0, or full name to access that user
                         * Must have clearance equal to or above user
