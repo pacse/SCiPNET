@@ -2,6 +2,8 @@
 Connection functions were made by Github Copilot
 '''
 from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, scoped_session
+from contextlib import contextmanager
 
 from .config import POOL_CONFIG, SQLITE_CONFIG, DB_URL
 from .exceptions import DatabaseConnectionError
@@ -20,3 +22,35 @@ def create_db_engine():
 
     except Exception as e:
         raise DatabaseConnectionError(f"Failed to create database engine:\n{e}")
+
+# create a global engine instance, crashes import if init fails
+engine = create_db_engine()
+# create a factory to generate new sessions
+Session_Factory = sessionmaker(bind=engine)
+# ensures each thread gets its own session
+Session = scoped_session(Session_Factory)
+
+# allows func to use `with` for easier management
+@contextmanager
+def db_session():
+    '''
+    Handles creation, action, and cleanup of a db session
+
+    Usage:
+    with db_session() as session:
+        session.add(some_object)
+        session.query(SomeModel).filter_by(id=1).first()
+    '''
+
+    session = Session()    # create a new session
+
+    try:
+        yield session      # give it to the caller
+        session.commit()   # commit what they did
+
+    except Exception as e:
+        session.rollback() # undo what causes an error
+        raise e            # show the error after safely handling
+
+    finally:
+        session.close()    # ensure we always close the session
