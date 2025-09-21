@@ -1,198 +1,278 @@
-'''
+"""
 SQL stuff
-'''
-from cs50 import SQL
-from typing import cast
-from pathlib import Path
-from pydantic import BaseModel, field_validator, Field
+"""
+# ==== imports utils.sql ====
 
-# custom exception ╰(*°▽°*)╯
+from . import tables
+from .tables import MainModels, HelperModels
 from .exceptions import *
+from .conn import db_session
 
-# auto timestamping
+# ==== other imports ====
 from ..basic import timestamp # NOTE: `..` to go up a folder, add a `.` for another folder up
+from sqlalchemy import func, select
+import ipaddress
+
+# for type hinting
+from sqlalchemy.sql.elements import ColumnElement
+from typing import Type, TypeAlias, Any
+
+ModelClass: TypeAlias = Type[tables.Base] # simplify a common type
+AnyColumn: TypeAlias = ColumnElement[Any]
+
+# helpers to shorten common expressions
+def table_name(model_class: ModelClass) -> str:
+    """
+    Returns the tablename of a ModelClass
+    """
+    return model_class.__tablename__
 
 
-# Valid table names for SQL queries
-VALID_TABLES = [
-    "users",
-    "scps",
-    "mtfs",
-    "sites",
-    "audit_log",
-    "clearance_levels",
-    "containment_classes",
-    "secondary_classes",
-    "disruption_classes",
-    "risk_classes",
-    "titles",
-    "colours"
-]
+def id_column(model_class: ModelClass) -> AnyColumn:
+    """
+    Returns the id column from a ModelClass
+    (first primary key)
+    """
+    return model_class.__mapper__.primary_key[0]
 
-# checks `table` against valid_tables
-def validate_table(table: str) -> bool:
-    '''
-    Validate the table name against the list of valid tables.
-
-    Returns True if the table is valid, False otherwise.
-    '''
-    return table in VALID_TABLES
-
-# Deepwell database connection
-DB_PATH = (Path(__file__).parent.parent.parent / "deepwell" / "SCiPnet.db").resolve()
-
-try:
-    db = SQL(f"sqlite:///{DB_PATH}")
-
-except RuntimeError:
-    raise DatabaseNotFoundError()
+def id_column_name(model_class: ModelClass) -> str:
+    """
+    Returns the name of the id column from a ModelClass
+    (first primary key)
+    """
+    return str(id_column(model_class)).split('.')[1]
 
 
-def next_id(table_name: str) -> int:
-    '''
+def type_name(value) -> str:
+    """
+    Returns the type name of a value
+    """
+    return type(value).__name__
+
+# ==== proper functions ====
+
+def next_id(model_class: ModelClass) -> int:
+    """
     Returns the next id in a table:
-    COALESCE(MAX(id)) + 1
-    '''
+    COALESCE(MAX(id), 0) + 1
+    """
+    # get table name & id col
+    t_name = table_name(model_class)
+    id_col  = id_column(model_class)
 
-    # validate input
-    if not validate_table(table_name):
-        raise TableNotFoundError(table_name)
+    # sanity check
+    if not tables.validate_table(t_name):
+        raise TableNotFoundError(t_name)
 
-    # use COALESCE to prevent NULL for empty tables
-    query = f"SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM {table_name}"
-
+    # execute query
     try:
-        return db.execute(query)[0]["next_id"]
+        with db_session() as session:
+            result = session.scalar( # scalar gets first column of first row
+                select(
+                    func.coalesce(func.max(id_col), 0) + 1
+                    )
+                )
 
+            if result is None:
+                raise RecordNotFoundError(
+                                          t_name,
+                                          str(id_col),
+                                          'COALESCE(MAX(id), 0) + 1'
+                                         )
+
+            return result
+
+    # catch all
     except Exception as e:
         raise DatabaseError(
-            f"Failed to retrieve next ID from {table_name!r}:\n{e}\nQuery used: {query!r}"
-        )
+                            f'Failed to get next ID for {table_name}:\n{e}'
+                           )
 
 
-def get_field_with_field(table_name: str,
+def get_field_with_field(model_class: ModelClass,
                          lookup_field: str, lookup_value: str | int,
                          return_field: str
-                        ): # impossible to know return type
-    '''
-    Gets `return_field` from `table_name` where `lookup_field` = `lookup_value`
-    '''
+                        ) -> Any:
+    """
+    Gets `return_field` from `model_class`
+    where `lookup_field` = `lookup_value`
+    """
+
+    # reused strings & template
+    lookup_val_type = type_name(lookup_value)
+    t_name: str = table_name(model_class)
+
+
     # validate inputs
-    if not validate_table(table_name):
-        raise TableNotFoundError(table_name)
+    if not tables.validate_table(t_name):
+        raise TableNotFoundError(t_name)
 
-    if lookup_field == "id" and not isinstance(lookup_value, int):
-        raise ValueError(f"Invalid ID: {lookup_value!r} (expected int, got {type(lookup_value).__name__})")
+    # validate lookup field & value types
+    if lookup_field.endswith('id') and not isinstance(lookup_value, int):
+        raise FieldError('id', lookup_value,
+                         f'int, got {lookup_val_type}'
+                        )
 
-    elif lookup_field == "name" and not isinstance(lookup_value, str):
-        raise ValueError(f"Invalid name: {lookup_value!r} (expected str, got {type(lookup_value).__name__})")
+    elif lookup_field == 'name' and not isinstance(lookup_value, str):
+        raise FieldError('name', lookup_value,
+                         f'str, got {lookup_val_type}'
+                        )
 
-    elif lookup_field not in ["id", "name"]:
-        raise ValueError(f"Invalid lookup field: {lookup_field!r} (expected 'id' or 'name')")
+    elif not (lookup_field.endswith('id') or lookup_field == 'name'):
+        raise FieldError('lookup field', lookup_field,
+                         f"'id' or 'name', got {lookup_field!r}"
+                        )
 
     try:
-        query = f"SELECT {return_field} FROM {table_name} WHERE {lookup_field} = ?"
-        return db.execute(query, lookup_value)[0][return_field]
+        with db_session() as session:
+            # getattr is equivalent to `model_class.lookup_field`
+            # just `.lookup_field` would look for a `lookup_field` col
+            lookup_col = getattr(model_class, lookup_field)
+            return_col = getattr(model_class, return_field)
 
-    except IndexError:
-        raise RecordNotFoundError(table_name, lookup_field, lookup_value)
+            # exec query
+            result = session.scalar(
+                select(return_col).filter(
+                    lookup_col == lookup_value
+                )
+            )
 
-    except (RuntimeError, KeyError): # db.execute will raise RuntimeError, KeyError just in case
-        raise ColumnNotFoundError(lookup_field, table_name)
+            # ensure we got something & return it
+            if result is None:
+                raise RecordNotFoundError(
+                    t_name,
+                    lookup_field,
+                    lookup_value
+                    )
 
-    except Exception as e:
-        raise DatabaseError(
-            f"Failed to retrieve {return_field!r} from {table_name!r} where {lookup_field} = {lookup_value}:\n{e}"
-        )
+            return result
+
+    except AttributeError as e:
+        # getattr() failed, col not found
+        if lookup_field in str(e):
+            raise ColumnNotFoundError(t_name, lookup_field)
+        else:
+            raise ColumnNotFoundError(t_name, return_field)
 
 
-def get_name(table: str, table_id: int) -> str:
-    '''
+def get_name(model_class: ModelClass, table_id: int) -> str:
+    """
     Gets the name of a row in a table by its ID
 
     returns the name as a string
-    '''
-    return get_field_with_field(table, "id", table_id, "name")
-
+    """
+    return get_field_with_field(model_class,
+                                id_column_name(model_class),
+                                table_id, 'name')
 
 def get_nickname(MTF_id: int) -> str:
-    '''
+    """
     Gets an MTF's nickname
 
     Returns the nickname as a string
-    '''
-    return get_field_with_field("mtfs", "id", MTF_id, "nickname")
+    """
+    return get_field_with_field(MainModels.MTF,
+                                'mtf_id', MTF_id,
+                                'nickname')
 
 
-def get_id(table: str, name: str) -> int:
-    '''
+def get_id(model_class: ModelClass, name: str) -> int:
+    """
     Gets the ID of a row in a table by its name
 
     Returns the ID as an integer
-    '''
-    return get_field_with_field(table, "name", name, "id")
+    """
+    return get_field_with_field(
+                                model_class,
+                                'name', name,
+                                id_column_name(model_class)
+                               )
 
 
-def get_colour(id: int) -> int:
-    '''
+def get_colour(c_id: int) -> str | None:
+    """
     Gets a ID's colour (for art.py) from a table
 
-    Returns DB hex code
-    '''
-    return get_field_with_field("colours", "id", id, "hex_code")
+    Returns hex colour code: #XXXXXX or None if code is not found
+    """
+    try:
+        return get_field_with_field(
+                                    HelperModels.Colour,
+                                    'id', c_id, 'hex_code'
+                                   )
 
-def get_cc_colour(id: int) -> int:
-    '''
-    Gets a containment class's colour (for art.py)
-
-    Returns a hex colour code
-    '''
-    # slightly different for containment classes,
-    # prolly easier to hardcode (it's definately not a good idea to hardcode)
-    if id == 1:
-        colours = (0,159,107) # Green
-    elif id == 2:
-        colours = (255,211,0) # Yellow
-    elif id == 3:
-        colours = (192,2,51) # Red
-    elif id == 4:
-        colours = (66,66,72) # Grey
-    elif id in range(5,9):
-        colours = (252,252,252) # White (for explained, pending, esoteric, etc.)
-    else:
-        raise ValueError(f"Invalid containment class ID: {id}")
-
-    # convert to hex & return
-    return int("".join(f"{n:02x}" for n in colours), 16)
+    # if not 1-6, return none
+    except RecordNotFoundError:
+        return None
 
 
-# Log events in the audit log (eg. account creation, login, file access, file edit, ect.)
-def log_event(user_id: int,
-              action: str,
-              details: str,
-              user_ip: str,
-              timestamp: str = timestamp(),
+# Log events in the audit log
+# (eg. account creation, login, file access, file edit, ect.)
+def log_event(
+              user_id: int, user_ip: str,
+              action: str, details: str,
               status: bool = True
-            ) -> None:
-    '''
+             ) -> None:
+    """
     Logs an event in the audit log
-    '''
+    """
+
     # validate inputs
     if not isinstance(user_id, int):
-        raise ValueError(f"Invalid user_id: {user_id!r} (expected int, got {type(user_id).__name__})")
+        raise FieldError(
+                         'user_id',
+                         user_id,
+                         f'(expected int, got {type_name(user_id)})'
+                        )
+
+    if not isinstance(user_ip, str):
+        raise FieldError(
+                         'user_ip',
+                         user_ip,
+                         f'(expected str, got {type_name(user_ip)})'
+                        )
+
+    try:
+        ipaddress.ip_address(user_ip)
+    except ValueError:
+        raise FieldError(
+                         'user_ip',
+                         user_ip,
+                         '(expected valid IP address'
+                        )
 
     if not isinstance(action, str):
-        raise ValueError(f"Invalid action: {action!r} (expected str, got {type(action).__name__})")
+        raise FieldError(
+                         'action',
+                         action,
+                         f'(expected str, got {type_name(action)})'
+                        )
 
     if not isinstance(details, str):
-        raise ValueError(f"Invalid details: {details!r} (expected str, got {type(details).__name__})")
+        raise FieldError(
+                         'details',
+                         details,
+                         f'(expected str, got {type_name(details)})'
+                        )
 
-    if not isinstance(timestamp, str):
-        raise ValueError(f"Invalid timestamp: {timestamp!r} (expected str, got {type(timestamp).__name__})")
+    if not isinstance(status, bool):
+        raise FieldError(
+                         'status',
+                         status,
+                         f'(expected bool, got {type_name(status)})'
+                        )
 
-    # execute query
-    query = """
-            INSERT INTO audit_log (user_id, action, details, user_ip, timestamp, status)
-            VALUES (?, ?, ?, ?, ?, ?)
-            """
-    return db.execute(query, user_id, action, details, user_ip, timestamp, status)
+    # create & insert row
+    row = MainModels.AuditLog(
+        user_id=user_id,
+        user_ip=user_ip,
+        action=action,
+        details=details,
+        status=status
+    )
+    try:
+        with db_session() as session:
+            session.add(row)
+            session.commit()
+    except Exception as e:
+        raise DatabaseError(f'Failed to log event:\nRow: {row}\nError: {e}')
