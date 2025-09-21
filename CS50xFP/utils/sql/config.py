@@ -1,17 +1,17 @@
-'''
+"""
 Database configuration settings
 Controls db conn params and pooling settings
 
 Connection settings were made by Github Copilot
-'''
+"""
 
 from pathlib import Path
 
 DB_PATH = (Path(__file__).parent.parent.parent / "deepwell" / "SCiPnet.db").resolve()
-'''Path to the SQLite database'''
+"""Path to the SQLite database"""
 
 DB_URL = f"sqlite:///{DB_PATH}"
-'''URL to connect to the database'''
+"""URL to connect to the database"""
 
 POOL_CONFIG = {
     'pool_size': 10,       # amount of permanent db conns
@@ -19,7 +19,7 @@ POOL_CONFIG = {
     'pool_timeout': 30,    # seconds to wait for an available connection before throwing an error
     'pool_recycle': 500    # recycle older connections
 }
-'''Connection pool configuration'''
+"""Connection pool configuration"""
 
 SQLITE_CONFIG = {
     'isolation_level': 'READ COMMITTED',  # only see commited data, allows for higher throughput than SERIALIZABLE while still being safe
@@ -29,3 +29,4 @@ SQLITE_CONFIG = {
         'check_same_thread': False        # allow conns to be shared across threads (allow multithreading)
     }
 }
+"""SQLite specific configuration"""
