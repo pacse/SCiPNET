@@ -1,18 +1,20 @@
-'''
+"""
 Connection functions were made by Github Copilot
-'''
+"""
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.orm import Session as SessionType
 from contextlib import contextmanager
+from typing import Generator
 
 from .config import POOL_CONFIG, SQLITE_CONFIG, DB_URL
-from .exceptions import DatabaseConnectionError
+from .exceptions import DatabaseConnectionError, DatabaseError
 
 def create_db_engine():
-    '''
+    """
     Creates a new SQLAlchemy database engine with
     settings from config.py for pool & SQLite
-    '''
+    """
     try:
         return create_engine(
             DB_URL,         # path to SQLite database
@@ -32,15 +34,18 @@ Session = scoped_session(Session_Factory)
 
 # allows func to use `with` for easier management
 @contextmanager
-def db_session():
-    '''
+def db_session() -> Generator[SessionType, None, None]:
+    """
     Handles creation, action, and cleanup of a db session
 
     Usage:
+
+    ```python
     with db_session() as session:
         session.add(some_object)
-        session.query(SomeModel).filter_by(id=1).first()
-    '''
+        session.query(SomeModel)
+    ```
+    """
 
     session = Session()    # create a new session
 
@@ -48,9 +53,9 @@ def db_session():
         yield session      # give it to the caller
         session.commit()   # commit what they did
 
-    except Exception as e:
+    except Exception:
         session.rollback() # undo what causes an error
-        raise e            # show the error after safely handling
+        raise              # raise original error
 
     finally:
         session.close()    # ensure we always close the session
