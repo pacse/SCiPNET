@@ -108,18 +108,6 @@ for title in [
         HelperModels.Title(name=title)
         )
 
-for colour in [
-             '#009F6B',
-             '#0087BD',
-             '#FFD300',
-             '#FF6D00',
-             '#C40233',
-             '#850005'
-            ]:
-    session.add(
-        HelperModels.Colour(hex_code=colour)
-    )
-
 
 # old data
 print(f'Initializing old data . . .')
