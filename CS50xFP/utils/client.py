@@ -8,7 +8,7 @@ from .art import *
 from .socket import ADDR, send, recv
 
 # for typedefing
-from rich.console import Console 
+from rich.console import Console
 from typing import Any
 
 def conn_to_server() -> socket.socket:
@@ -41,31 +41,31 @@ def create(server: socket.socket, f_type: str, c_lvl: int) -> None:
     if not response: # ensure we have data
         no_response()
         return
-    
+
     if len(response) == 3: # clearance error
         clearance_denied(response[1], response[2])
         return
-    
+
     elif len(response) == 2: # invalid f-type
         invalid_f_type(response[1])
-    
+
     elif response == "RENDER": # all clear
         create_f(f_type)
-    
+
     # get necessary info for creation
     create_info = recv(server)
 
     if not create_info:
         no_response()
         return
-    
+
     # get file data from usr
     file = {}
 
     if f_type == "SCP":
         # scp_id
         file["id"] = 3 #int(input(f"ID (next id: {create_info['id']}) >>> "))
-        
+
         # show available classification lvls
         printc("Classification Levels:")
         for c_level in create_info["clearance_levels"]:
@@ -89,7 +89,7 @@ def create(server: socket.socket, f_type: str, c_lvl: int) -> None:
         for s_class in create_info["secondary_classes"]:
             print(f"{s_class['id']} - {s_class['name']}")
         print()
-        
+
         # get file secondary class
         file["secondary_class_id"] = 0 #int(input("Secondary Class (id)\n>>> "))
 
@@ -130,7 +130,7 @@ def create(server: socket.socket, f_type: str, c_lvl: int) -> None:
         file["desc"] = "1" #input("Description\n>>> ")
         print()
         # TODO: Handle addenda and multi descs/SCPs
-        
+
     elif f_type == "MTF":
         file["name"] = input("MTF Name (eg. Epsilon-6)\n>>> ")
         print()
@@ -140,7 +140,7 @@ def create(server: socket.socket, f_type: str, c_lvl: int) -> None:
         print()
         file["desc"] = input("MTF Description\n>>> ")
         # TODO: Handle ect files
-    
+
     elif f_type == "SITE":
         file["name"] = input("Site Name (eg. Humanoid Containment Site-06-3)\n>>> ")
         print()
@@ -162,7 +162,7 @@ def create(server: socket.socket, f_type: str, c_lvl: int) -> None:
         printc("Clearance Levels:")
         for c_level in create_info["clearance_levels"]:
             print(f"{c_level['id']} - {c_level['name']}")
-        
+
         # get clearance level
         file["clearance_level_id"] = int(input(f"Clearance Level (max: {c_lvl-1 if c_lvl < 6 else 6})\n>>> "))
 
@@ -217,16 +217,16 @@ def access(server: socket.socket, console: Console, type: str, file: str) -> Non
         no_response()
         server.close()
         return
-    
+
     # check for errors
     if response == "INVALID FILETYPE":
         invalid_f_type(type)
         return
-    
+
     elif response == "EXPUNGED":
         expunged(f"{type} {file}")
         return
-    
+
     elif response[0] == "REDACTED":
         redacted(f"{type} {file}", response[1], response[2])
         return
@@ -235,7 +235,7 @@ def access(server: socket.socket, console: Console, type: str, file: str) -> Non
         printc(f"INVALID RESPONSE: {response!r}")
         server.close()
         return
-    
+
     f_data: dict[str, Any] = response[1]
 
     if type == "SCP":
@@ -245,7 +245,7 @@ def access(server: socket.socket, console: Console, type: str, file: str) -> Non
         display_mtf(f_data, console)
     elif type == "SITE":
         display_site(f_data, console)
-        
+
     elif type == "USER":
         display_user(f_data, console)
     else:
