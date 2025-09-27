@@ -2,7 +2,12 @@
 bs4
 requests
 
-cs50
+# server side
+sqlalchemy
+
+# user side
+tabulate
 rich
+
+# user and server side
 pydantic
-sqlalchemy # server side
