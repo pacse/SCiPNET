@@ -10,7 +10,7 @@ def tabulate(*args, **kwags):
     return ""
 
 from .basic import clear, timestamp
-from .sql.sql import User, SCP, Site, MTF, get_name
+from .sql.tables import MainModels
 
 # disable markdown_it logging
 import logging
@@ -32,7 +32,7 @@ if SIZE < 120:
 # useful str bars (ACS, Site, etc.)
 REPEATED = "═" * 58
 
-
+# helpers
 def printc(string: str) -> None:
   '''
   prints {string} centered to the terminal size
@@ -93,7 +93,7 @@ def startup() -> None:
     print()
 
 
-def login(usr: User) -> None:
+def login(usr: MainModels.User) -> None:
     '''
     prints fancy login messages when
     a user logs in.
@@ -103,7 +103,7 @@ def login(usr: User) -> None:
     # lines we'll use a few times
     reused1 = "/" * 4 + " " * 112 + "/" * 4
     reused2 = "/" * 120
-    title = get_name("titles", usr.title_id)
+    title = usr.title_name
 
     # set lines depending on usr title
     if title == "O5 Council Member":
@@ -164,14 +164,14 @@ def login(usr: User) -> None:
         lines = [
             "",
             f"Welcome back, {title} {usr.name}",
-            f"(Clearance Level {usr.clearance_level_id} - {get_name('clearance_levels', usr.clearance_level_id)})"
+            f"(Clearance {usr.clearance_name})"
             "",
         ]
 
     print_lines(lines)
 
 
-def redacted(file: str, file_classification: int, clearance: int) -> None:
+def redacted(file: str, file_classification: str, usr_clearance: str) -> None:
     '''
     prints a message saying {file} is above your clearance
 
@@ -184,8 +184,8 @@ def redacted(file: str, file_classification: int, clearance: int) -> None:
         "╚══════════════════════════════╝",
         "",
         f"FILE_REF: {file} REDACTED",
-        f"CLEARANCE {get_name('clearance_levels', file_classification).upper()} REQUIRED",
-        f"(YOU ARE CLEARANCE {get_name('clearance_levels', clearance).upper()})",
+        f"CLEARANCE {file_classification} REQUIRED",
+        f"(YOU ARE CLEARANCE {usr_clearance})",
         f"Logged to RAISA at {timestamp()}",
         "",
     ])
@@ -241,7 +241,7 @@ def create_f(f_type: str) -> None:
         "",
     ])
 
-def clearance_denied(needed_c: int, usr_c: int) -> None:
+def clearance_denied(needed_clearance: str, usr_clearance: str) -> None:
     '''
     Tells the usr they have insufficient clearance for file creation
 
@@ -253,8 +253,8 @@ def clearance_denied(needed_c: int, usr_c: int) -> None:
         "║     INSUFFICIENT CLEARANCE   ║",
         "╚══════════════════════════════╝",
         ""
-        f"CLEARANCE {get_name('clearance_levels', needed_c).upper()} REQUIRED TO CREATE FILE",
-        f"(YOU ARE CLEARANCE {get_name('clearance_levels', usr_c).upper()})",
+        f"CLEARANCE {needed_clearance} REQUIRED TO CREATE FILE",
+        f"(YOU ARE CLEARANCE {usr_clearance})",
         f"Logged to RAISA at {timestamp()}",
         "",
     ])
@@ -342,26 +342,26 @@ def created_f(f_type: str) -> None:
     ])
 
 
-def print_piped_line(console: Console, 
-                     string: str, 
+def print_piped_line(console: Console,
+                     string: str,
                      side: str,
                      hex_colour: int | None = None,
                      width = 58,
                      outer_space = (SIZE - 120) // 2,
                      default_colouring = True) -> None:
-    
+
     # quick input validation
     assert side in ["l", "r", "c"], f"Invalid side choice {side!r}. Must be 'l' or 'r'"
 
     # calculate inner space
     inner_space = (width - len(string)) // 2
-    
+
     # do we need extra space?
     if inner_space * 2 != (width - len(string)):
         use_extra = True
     else:
         use_extra = False
-    
+
     # print left space
     if side == 'l':
         print(f"{(' ' * outer_space)}║{' ' * inner_space}", end="")
@@ -373,37 +373,37 @@ def print_piped_line(console: Console,
             use_extra = not use_extra
     else:
         print(f"║{' ' * inner_space}",end="")
-        
+
     # start printing main line
     split_string = string.split(":") # we only format after the colon
     print(f"{split_string[0]}:", end="")
-    
+
     # now's the hard part, format
 
     # first get everything we want to format
     f_string = "".join(split_string[1:])
-    
-    # if we're not using default colouring, 
+
+    # if we're not using default colouring,
     # just print bold f_string
     if not default_colouring:
         f_string = Text(f_string)
         console.print(f_string, style = "bold", end="")
-    
+
     # disable normal colouring if we have a hex_code
     elif hex_colour:
         f_string = Text(f_string)
         console.print(f_string, style = f"#{hex_colour:06x} bold", end="")
-    
+
     # otherwise just bold
     else:
         console.print(f_string, style = "bold",end="")
-    
+
     # ╰(*°▽°*)╯ yeye that wasn't that hard ╰(*°▽°*)╯
     # now rest of line
-    
+
     # print right space
     print(f"{' ' * inner_space}{' ' if use_extra else ''}", end="")
-    
+
     # now do we move to a newline?
     if side == "r":
         print("║")
@@ -434,7 +434,7 @@ def print_table(data: list[dict[str,str]]) -> None:
     # print
     for line in table_str:
         print(line)
-    
+
 
 # To display an SCP
 def acs_bar(scp_info: SCP, console: Console) -> None:
@@ -500,7 +500,7 @@ def display_scp(data: dict[str, Any], console: Console) -> None:
         print()
 
         # check for remaining addenda
-        if a_names:  
+        if a_names:
             print("Display additional addenda?")
 
             # offer more addenda
@@ -570,7 +570,7 @@ def display_site(data: dict[str, Any], console: Console) -> None:
 
         for i in range(len(keys)):
             print(f"{i}: {keys[i]}")
-            
+
         print("C: close file")
 
         # get usr chice
@@ -579,7 +579,7 @@ def display_site(data: dict[str, Any], console: Console) -> None:
         # handle choice
         if choice.upper() == "C":
             return
-        
+
         try:
             name = keys[int(choice)]
             console.print(Md(f"## {name}\n\n{data[name]}"))
@@ -603,12 +603,12 @@ def mtf_bar(mtf_info: MTF, console: Console) -> None:
 
 def display_mtf(data: dict[str, Any], console: Console) -> None:
     '''
-    displays a MTF after a user 
+    displays a MTF after a user
     receives MTF info from deepwell
     '''
     mtf_info = init_mtf(data["db_info"])
     mission = data["mission"]
-    
+
     # as always, display the bar first
     mtf_bar(mtf_info, console)
 
@@ -634,3 +634,4 @@ def user_bar(user_info: User, console: Console) -> None:
 def display_user(data: dict[str, Any], console: Console) -> None:
     # just a bar for now, no other files
     user_bar(init_usr(data["db_info"]), console)
+
