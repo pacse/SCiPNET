@@ -1,6 +1,7 @@
 """
 SQL stuff
 """
+
 # ==== imports utils.sql ====
 
 from . import tables
@@ -9,7 +10,6 @@ from .exceptions import *
 from .conn import db_session
 
 # ==== other imports ====
-from ..basic import timestamp # NOTE: `..` to go up a folder, add a `.` for another folder up
 from sqlalchemy import func, select
 import ipaddress
 
@@ -21,33 +21,34 @@ ModelClass: TypeAlias = Type[tables.Base] # simplify a common type
 AnyColumn: TypeAlias = ColumnElement[Any]
 
 # helpers to shorten common expressions
-def table_name(model_class: ModelClass) -> str:
+def get_table_name(model_class: ModelClass) -> str:
     """
-    Returns the tablename of a ModelClass
+    Returns a ModelClass's tablename
     """
     return model_class.__tablename__
 
 
-def id_column(model_class: ModelClass) -> AnyColumn:
+def get_id_col(model_class: ModelClass) -> AnyColumn:
     """
-    Returns the id column from a ModelClass
+    Returns a ModelClass's id column
     (first primary key)
     """
     return model_class.__mapper__.primary_key[0]
 
-def id_column_name(model_class: ModelClass) -> str:
+def get_id_col_name(model_class: ModelClass) -> str:
     """
-    Returns the name of the id column from a ModelClass
+    Returns the name of a ModelClass's id column
     (first primary key)
     """
-    return str(id_column(model_class)).split('.')[1]
+    return str(get_id_col(model_class)).split('.')[1]
 
 
-def type_name(value) -> str:
+def get_type_name(value) -> str:
     """
-    Returns the type name of a value
+    Returns the name of a value's type
     """
     return type(value).__name__
+
 
 # ==== proper functions ====
 
@@ -57,8 +58,8 @@ def next_id(model_class: ModelClass) -> int:
     COALESCE(MAX(id), 0) + 1
     """
     # get table name & id col
-    t_name = table_name(model_class)
-    id_col  = id_column(model_class)
+    t_name = get_table_name(model_class)
+    id_col  = get_id_col(model_class)
 
     # sanity check
     if not tables.validate_table(t_name):
@@ -85,7 +86,7 @@ def next_id(model_class: ModelClass) -> int:
     # catch all
     except Exception as e:
         raise DatabaseError(
-                            f'Failed to get next ID for {table_name}:\n{e}'
+                            f'Failed to get next ID for {get_table_name}:\n{e}'
                            )
 
 
@@ -99,8 +100,8 @@ def get_field_with_field(model_class: ModelClass,
     """
 
     # reused strings & template
-    lookup_val_type = type_name(lookup_value)
-    t_name: str = table_name(model_class)
+    lookup_val_type = get_type_name(lookup_value)
+    t_name: str = get_table_name(model_class)
 
 
     # validate inputs
@@ -162,7 +163,7 @@ def get_name(model_class: ModelClass, table_id: int) -> str:
     returns the name as a string
     """
     return get_field_with_field(model_class,
-                                id_column_name(model_class),
+                                get_id_col_name(model_class),
                                 table_id, 'name')
 
 def get_nickname(MTF_id: int) -> str:
@@ -185,7 +186,7 @@ def get_id(model_class: ModelClass, name: str) -> int:
     return get_field_with_field(
                                 model_class,
                                 'name', name,
-                                id_column_name(model_class)
+                                get_id_col_name(model_class)
                                )
 
 
@@ -222,14 +223,14 @@ def log_event(
         raise FieldError(
                          'user_id',
                          user_id,
-                         f'(expected int, got {type_name(user_id)})'
+                         f'(expected int, got {get_type_name(user_id)})'
                         )
 
     if not isinstance(user_ip, str):
         raise FieldError(
                          'user_ip',
                          user_ip,
-                         f'(expected str, got {type_name(user_ip)})'
+                         f'(expected str, got {get_type_name(user_ip)})'
                         )
 
     try:
@@ -245,21 +246,21 @@ def log_event(
         raise FieldError(
                          'action',
                          action,
-                         f'(expected str, got {type_name(action)})'
+                         f'(expected str, got {get_type_name(action)})'
                         )
 
     if not isinstance(details, str):
         raise FieldError(
                          'details',
                          details,
-                         f'(expected str, got {type_name(details)})'
+                         f'(expected str, got {get_type_name(details)})'
                         )
 
     if not isinstance(status, bool):
         raise FieldError(
                          'status',
                          status,
-                         f'(expected bool, got {type_name(status)})'
+                         f'(expected bool, got {get_type_name(status)})'
                         )
 
     # create & insert row
