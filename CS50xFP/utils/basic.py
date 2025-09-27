@@ -3,7 +3,7 @@ Low level functions and vars
 '''
 from typing import TypeAlias, Any
 from os import name, system
-from datetime import datetime as dt
+from datetime import datetime
 
 Unknown: TypeAlias = Any
 '''temp type for incomplete type annotations'''
@@ -27,4 +27,5 @@ def timestamp() -> str:
 
   Format: YYYY/MM/DD - HH/MM/SS
   '''
-  return dt.now().strftime("%Y/%m/%d - %H/%M/%S")
+  curr_dt = datetime.now()
+  return curr_dt.strftime("%Y/%m/%d - %H/%M/%S")
