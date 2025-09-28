@@ -11,6 +11,8 @@ import os
 # models to create tables
 from utils.sql.tables import Base, MainModels, HelperModels
 
+from werkzeug.security import generate_password_hash
+
 # handle cl args
 if len(argv) > 2:
     # improper usage
@@ -54,7 +56,7 @@ for c_lvl in [
               'Level 6 - Cosmic Top Secret'
             ]:
     session.add(
-        HelperModels.ClearanceLevel(name=c_lvl)
+        HelperModels.ClearanceLvl(name=c_lvl)
         )
 
 for c_clss in [
@@ -112,16 +114,16 @@ for title in [
 # old data
 print(f'Initializing old data . . .')
 
-s_1123 = MainModels.Site(s_id=1123, name='MEEEEE')
-s_6 = MainModels.Site(s_id=6, name='Site-6')
+s_1123 = MainModels.Site(id=1123, name='MEEEEE')
+s_6 = MainModels.Site(id=6, name='Site-6')
 
 
-u_1 = MainModels.User(name='Evren Packard', password='InSAne',
+u_1 = MainModels.User(name='Evren Packard', password=generate_password_hash('InSAne'),
                       clearance_lvl_id=6, title_id=7, site_id=1123,
-                      override_phrase='You\'ll be living a life like Barbie and Ken')
-u_2 = MainModels.User(name='Glorbo Florbo', password='1234',
+                      override_phrase=generate_password_hash('You\'ll be living a life like Barbie and Ken'))
+u_2 = MainModels.User(name='Glorbo Florbo', password=generate_password_hash('1234'),
                       clearance_lvl_id=5, title_id=6, site_id=1123)
-u_3 = MainModels.User(name='James', password='password',
+u_3 = MainModels.User(name='James', password=generate_password_hash('password'),
                       clearance_lvl_id=1, title_id=6, site_id=6)
 
 mtf_1 = MainModels.MTF(name='Gamma-94', nickname='Gramma\'s little helpers',
@@ -129,10 +131,10 @@ mtf_1 = MainModels.MTF(name='Gamma-94', nickname='Gramma\'s little helpers',
 mtf_2 = MainModels.MTF(name='Epsilon-6', nickname='Village Idiots',)
 mtf_3 = MainModels.MTF(name='Alpha-1', nickname='Red Right Hand')
 
-scp_1 = MainModels.SCP(scp_id=49, classification_level_id=6,
+scp_1 = MainModels.SCP(id=49, clearance_lvl_id=6,
                        containment_class_id=2, disruption_class_id=2,
                        risk_class_id=4)
-scp_2 = MainModels.SCP(scp_id=2, classification_level_id=2,
+scp_2 = MainModels.SCP(id=2, clearance_lvl_id=2,
                        containment_class_id=2, disruption_class_id=1,
                        risk_class_id=2)
 
