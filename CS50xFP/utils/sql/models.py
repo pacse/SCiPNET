@@ -2,17 +2,23 @@
 BaseModels to store used information
 (by client) provided by the deepwell
 """
-from pydantic import BaseModel as Base
+from pydantic import IPvAnyAddress, Field, BaseModel as Base
+from datetime import datetime
+from typing import Literal
 
-
+# helpers
 class ORMBase(Base):
     """
     BaseModel for all ORM models
     (Allows generation from SQLAlchemy models)
     """
 
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
     model_config = {
-        "from_attributes": True
+        'from_attributes': True
     }
 
 class IDandName(ORMBase):
@@ -22,33 +28,63 @@ class IDandName(ORMBase):
     id: int
     name: str
 
+
+# models
 class User(ORMBase):
     """
     BaseModel to store user information
     """
-    id: int
     name: str
-    clearance_level: IDandName
+
+    clearance_lvl: IDandName
     title: IDandName
-    site_id: int
+
+    site_id: int # only id bc names can be long (150+ chars)
+    mtf: "MTF | None" = None
+
+    is_active: bool = False
+    last_login: datetime | None = None
+
 
 class Site(ORMBase):
-    id: int
     name: str
-    director: User | None = None
+    director: "User | None" = None
 
+    staff: list["User"]
+    scps: list["SCP"]
+    mtfs: list["MTF"]
 
 
 class MTF(ORMBase):
-    id: int
     name: str
     nickname: str
-    leader: User | None = None
-    site: Site | None = None
-    active: bool
+    leader: "User | None" = None
+    site: "Site | None" = None
+    active: bool = True
+
+    scps: list["SCP"]
+    members: list["User"]
+
+"""
+TODO: add MTF subtypes: (Do after submit final project)
+Anomaly Response Command (ARC): Commands ARC teams
+    Mobile Task Force (MTF): General-purpose Force
+    Naval Task Force (NTF): Force specializing in naval operations
+    Rapid Response Team (RRT): Team for rapid deployment to incidents
+    Tactical Response Team (TRT): Team for tactical operations
+    Special Operations Group (SOG): Elite special operations unit
+
+Team vs Force:
+    Team: Smaller, specialized unit within a Force
+    Force: Heavier, more general-purpose unit
+
+    Eg, when a 'MTF' is sent into an SCP, it's
+    actually a Team from that MTF
+
+"""
 
 
-class SCP_Colours(Base):
+class SCPColours(Base):
     """
     BaseModel to store hex colour
     codes for the display of an SCP
@@ -64,11 +100,36 @@ class SCP(ORMBase):
     A dataclass to store a SCP's information
     after getting its data from the deepwell
     """
-    id: int
-    clearance_level: IDandName
+    clearance_lvl: IDandName
+
     containment_class: IDandName
     secondary_class: IDandName | None = None
+
     disruption_class: IDandName | None = None
     risk_class: IDandName | None = None
+
     site_responsible_id: int | None = None
-    mtf: MTF | None = None
+    mtf: "MTF | None" = None
+
+    status: Literal['active', 'neutralized', 'explained', 'deleted'] = 'active'
+
+
+class AuditLog(ORMBase):
+    """
+    A dataclass to store an audit log's information
+    after getting its data from the deepwell
+    """
+    user: "User"
+    user_ip: IPvAnyAddress
+
+    action: str
+    details: str
+    status: bool # success or failure
+
+
+# Resolve forward references (Pointed out by Copilot)
+User.model_rebuild()
+Site.model_rebuild()
+MTF.model_rebuild()
+SCP.model_rebuild()
+AuditLog.model_rebuild()
