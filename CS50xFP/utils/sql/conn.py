@@ -47,15 +47,15 @@ def db_session() -> Generator[SessionType, None, None]:
     ```
     """
 
-    session = Session()    # create a new session
 
     try:
-        yield session      # give it to the caller
-        session.commit()   # commit what they did
+        session = Session()  # create a new session
+        yield session        # give it to the caller
+        session.commit()     # commit what they did
 
     except Exception:
-        session.rollback() # undo what causes an error
-        raise              # raise original error
+        session.rollback()   # undo what causes an error
+        raise                # raise original error
 
     finally:
-        session.close()    # ensure we always close the session
+        session.close()      # ensure we always close the session
