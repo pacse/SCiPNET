@@ -5,13 +5,12 @@ SQL stuff
 # ==== imports utils.sql ====
 
 from . import tables
-from .tables import MainModels, HelperModels
+from .tables import MainModels
 from .exceptions import *
 from .conn import db_session
 
 # ==== other imports ====
 from sqlalchemy import func, select
-import ipaddress
 
 # for type hinting
 from sqlalchemy.sql.elements import ColumnElement
@@ -26,22 +25,6 @@ def get_table_name(model_class: ModelClass) -> str:
     Returns a ModelClass's tablename
     """
     return model_class.__tablename__
-
-
-def get_id_col(model_class: ModelClass) -> AnyColumn:
-    """
-    Returns a ModelClass's id column
-    (first primary key)
-    """
-    return model_class.__mapper__.primary_key[0]
-
-def get_id_col_name(model_class: ModelClass) -> str:
-    """
-    Returns the name of a ModelClass's id column
-    (first primary key)
-    """
-    return str(get_id_col(model_class)).split('.')[1]
-
 
 def get_type_name(value) -> str:
     """
@@ -59,7 +42,6 @@ def next_id(model_class: ModelClass) -> int:
     """
     # get table name & id col
     t_name = get_table_name(model_class)
-    id_col  = get_id_col(model_class)
 
     # sanity check
     if not tables.validate_table(t_name):
@@ -70,14 +52,14 @@ def next_id(model_class: ModelClass) -> int:
         with db_session() as session:
             result = session.scalar( # scalar gets first column of first row
                 select(
-                    func.coalesce(func.max(id_col), 0) + 1
+                    func.coalesce(func.max(model_class.id), 0) + 1
                     )
                 )
 
             if result is None:
                 raise RecordNotFoundError(
                                           t_name,
-                                          str(id_col),
+                                          'id',
                                           'COALESCE(MAX(id), 0) + 1'
                                          )
 
@@ -86,7 +68,7 @@ def next_id(model_class: ModelClass) -> int:
     # catch all
     except Exception as e:
         raise DatabaseError(
-                            f'Failed to get next ID for {get_table_name}:\n{e}'
+                            f'Failed to get next ID for {t_name}:\n{e}'
                            )
 
 
@@ -109,7 +91,7 @@ def get_field_with_field(model_class: ModelClass,
         raise TableNotFoundError(t_name)
 
     # validate lookup field & value types
-    if lookup_field.endswith('id') and not isinstance(lookup_value, int):
+    if lookup_field == 'id' and not isinstance(lookup_value, int):
         raise FieldError('id', lookup_value,
                          f'int, got {lookup_val_type}'
                         )
@@ -119,10 +101,17 @@ def get_field_with_field(model_class: ModelClass,
                          f'str, got {lookup_val_type}'
                         )
 
-    elif not (lookup_field.endswith('id') or lookup_field == 'name'):
+    elif not lookup_field in ['id', 'name']:
         raise FieldError('lookup field', lookup_field,
                          f"'id' or 'name', got {lookup_field!r}"
                         )
+
+    # ensure fields exist
+    if not hasattr(model_class, lookup_field):
+        raise ColumnNotFoundError(t_name, lookup_field)
+
+    if not hasattr(model_class, return_field):
+        raise ColumnNotFoundError(t_name, return_field)
 
     try:
         with db_session() as session:
@@ -162,19 +151,15 @@ def get_name(model_class: ModelClass, table_id: int) -> str:
 
     returns the name as a string
     """
-    return get_field_with_field(model_class,
-                                get_id_col_name(model_class),
-                                table_id, 'name')
+    return get_field_with_field(model_class, 'id', table_id, 'name')
 
-def get_nickname(MTF_id: int) -> str:
+def get_nickname(id: int) -> str:
     """
     Gets an MTF's nickname
 
     Returns the nickname as a string
     """
-    return get_field_with_field(MainModels.MTF,
-                                'mtf_id', MTF_id,
-                                'nickname')
+    return get_field_with_field(MainModels.MTF, 'mtf_id', id, 'nickname')
 
 
 def get_id(model_class: ModelClass, name: str) -> int:
@@ -186,25 +171,8 @@ def get_id(model_class: ModelClass, name: str) -> int:
     return get_field_with_field(
                                 model_class,
                                 'name', name,
-                                get_id_col_name(model_class)
+                                'id'
                                )
-
-
-def get_colour(c_id: int) -> str | None:
-    """
-    Gets a ID's colour (for art.py) from a table
-
-    Returns hex colour code: #XXXXXX or None if code is not found
-    """
-    try:
-        return get_field_with_field(
-                                    HelperModels.Colour,
-                                    'id', c_id, 'hex_code'
-                                   )
-
-    # if not 1-6, return none
-    except RecordNotFoundError:
-        return None
 
 
 # Log events in the audit log
@@ -223,57 +191,57 @@ def log_event(
         raise FieldError(
                          'user_id',
                          user_id,
-                         f'(expected int, got {get_type_name(user_id)})'
+                         f'int, got {get_type_name(user_id)}'
                         )
 
     if not isinstance(user_ip, str):
         raise FieldError(
                          'user_ip',
                          user_ip,
-                         f'(expected str, got {get_type_name(user_ip)})'
+                         f'str, got {get_type_name(user_ip)}'
                         )
 
     try:
-        ipaddress.ip_address(user_ip)
+        from ipaddress import ip_address
+        ip_address(user_ip)
     except ValueError:
         raise FieldError(
                          'user_ip',
                          user_ip,
-                         '(expected valid IP address'
+                         'valid IP address'
                         )
 
     if not isinstance(action, str):
         raise FieldError(
                          'action',
                          action,
-                         f'(expected str, got {get_type_name(action)})'
+                         f'str, got {get_type_name(action)}'
                         )
 
     if not isinstance(details, str):
         raise FieldError(
                          'details',
                          details,
-                         f'(expected str, got {get_type_name(details)})'
+                         f'str, got {get_type_name(details)}'
                         )
 
     if not isinstance(status, bool):
         raise FieldError(
                          'status',
                          status,
-                         f'(expected bool, got {get_type_name(status)})'
+                         f'bool, got {get_type_name(status)}'
                         )
 
     # create & insert row
-    row = MainModels.AuditLog(
-        user_id=user_id,
-        user_ip=user_ip,
-        action=action,
-        details=details,
-        status=status
-    )
     try:
         with db_session() as session:
+            row = MainModels.AuditLog(
+                                      user_id=user_id,
+                                      user_ip=user_ip,
+                                      action=action,
+                                      details=details,
+                                      status=status
+                                     )
             session.add(row)
-            session.commit()
     except Exception as e:
         raise DatabaseError(f'Failed to log event:\nRow: {row}\nError: {e}')
