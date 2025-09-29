@@ -6,14 +6,16 @@ SCiPnet.db and related table information/funcs
 from sqlalchemy import (Column, Integer, String, Boolean, DateTime,
                         ForeignKey, Index, CheckConstraint)
 
-from sqlalchemy.orm import (relationship, RelationshipProperty,
-                            DeclarativeBase, validates)
+from sqlalchemy.orm import (relationship, DeclarativeBase,
+                            validates, Mapped)
 
 from datetime import datetime
 
-import re
+# for validation
+import re, ipaddress
+
 wk_hash_regex = r'scrypt:32768:8:1\$[A-Za-z0-9]{16}\$[A-Za-z0-9]{128}'
-"""A regex for a werkzeug hash (for validation)"""
+"""werkzeug hash regex for validation"""
 
 
 # ease of life shortenings
@@ -46,43 +48,18 @@ def wk_hash(nullable: bool) -> Column[str]:
     return col_str(162, nullable) # 162 is max length of werkzeug hash
 
 
-def pops_rel(to: str,
-        back_pop: str,
-       ) -> RelationshipProperty:
+def rel(to: str,
+        /, back_pop: str, # '/,' forces kwargs after
+        keys: list | None = None
+       ) -> Mapped:
     """
     Returns a relationship to another table.
     """
+    if keys:
+        return relationship(to,
+                            back_populates=back_pop, foreign_keys=keys)
     return relationship(to,
                         back_populates=back_pop)
-
-
-def ref_rel(to: str,
-            back_ref: str,
-            foreign_keys = None
-           ) -> RelationshipProperty:
-    """
-    Returns a relationship to another table.
-    """
-    return relationship(to,
-                        backref=back_ref[:-1], # remove plural 's'
-                        foreign_keys=foreign_keys
-                        )
-
-
-def SCP_rel(t_name: str) -> RelationshipProperty:
-    """
-    Returns a relationship to the SCP table.
-    """
-    return ref_rel('SCP', t_name)
-
-def User_rel(t_name: str,
-             foreign_keys: list = []
-            ) -> RelationshipProperty:
-    """
-    Returns a relationship to the User table.
-    """
-    return ref_rel('User', t_name, foreign_keys=foreign_keys)
-
 
 # ease of life Mixin
 
@@ -113,47 +90,73 @@ class User(Base):
     __tablename__ = 'users'
 
 
-    name = col_str(50, False)
+    name = col_str(50, nullable = False)
     password = wk_hash(nullable = False)
     override_phrase = wk_hash(nullable = True)
 
-    clearance_lvl_id = col_int_fk('clearance_levels.id', False)
+    clearance_lvl_id = col_int_fk('clearance_lvls.id', nullable = False)
 
-    title_id = col_int_fk('titles.id', False)
-    site_id = col_int_fk('sites.id', False)
+    title_id = col_int_fk('titles.id', nullable = False)
+    site_id = col_int_fk('sites.id', nullable = False)
+    mtf_id = col_int_fk('mtfs.id', nullable = True)
 
     is_active = Column(Boolean, default = False, nullable = False)
-    last_login = Column(DateTime, default = None)
+    last_login = Column(DateTime, default = None, nullable = True)
+
+    # relationships
+
+    # local
+    clearance_lvl: Mapped["ClearanceLvl"] = rel('ClearanceLvl', back_pop='users')
+    title: Mapped["Title"] = rel('Title', back_pop='users')
+    site: Mapped["Site"] = rel('Site', back_pop='staff', keys=[site_id])
+    mtf: Mapped["MTF | None"] = rel('MTF', back_pop='leader', keys=[mtf_id])
+
+    # acknowledge other tables
+    audit_logs: Mapped[list["AuditLog"]] = rel('AuditLog', back_pop='user')
+    led_mtfs: Mapped[list["MTF"]] = relationship('MTF', back_populates='members', foreign_keys='MTF.leader_id')
+    directed_sites: Mapped[list["Site"]] = relationship('Site', back_populates='director', foreign_keys='Site.director_id')
 
 
-    # relationship (others handled automatically, hopefully 🤞)
-    audit_logs = pops_rel('AuditLog', 'user')
-
-
-    # validators! 🎉
+    # validator! 🎉
     @validates('password', 'override_phrase')
     def validate_hash(self, key, value):
         if len(value) != 162:
-            raise ValueError('Werkzeug hash must be 162 characters long')
+            raise ValueError(f'Error with {key!r}: Werkzeug hash must be 162 characters long')
 
-        if not re.fullmatch(wk_hash_regex, value):
-            raise ValueError('Provided value is not a valid Werkzeug hash (correct length (162), did not match regex)')
+        elif not re.fullmatch(wk_hash_regex, value):
+            raise ValueError(f'Error with {key!r}: Provided value is not a valid Werkzeug hash (correct length (162), did not match regex)')
+        return value
 
 
     __table_args__ = (
         # table indexes
         Index('idx_users_name', name),
-        Index('idx_users_clearance_level_id', clearance_lvl_id),
+        Index('idx_users_clearance_lvl_id', clearance_lvl_id),
         Index('idx_users_site_id', site_id),
         Index('idx_users_title_id', title_id),
         Index('idx_users_is_active', is_active),
+        Index('idx_users_last_login', last_login),
+        Index('idx_users_created_at', 'created_at'),
         Index('idx_users_updated_at', 'updated_at')
     )
+
+    def __repr__(self):
+        return (
+                f"<User(id={self.id}, name='{self.name}', "
+                f"password='{self.password}', "
+                f"override_phrase='{self.override_phrase}', "
+                f"clearance_lvl_id={self.clearance_lvl_id}, "
+                f"title_id={self.title_id}, site_id={self.site_id}, "
+                f"is_active={self.is_active}, last_login={self.last_login}, "
+                f"created_at={self.created_at}, updated_at={self.updated_at}"
+                ")>"
+               )
+
 
 class SCP(Base):
     __tablename__ = 'scps'
 
-    clearance_lvl_id = col_int_fk('clearance_levels.id', False)
+    clearance_lvl_id = col_int_fk('clearance_lvls.id', False)
 
     containment_class_id = col_int_fk('containment_classes.id', False)
     secondary_class_id = col_int_fk('secondary_classes.id', True)
@@ -167,7 +170,20 @@ class SCP(Base):
     status = Column(String(15), default='active', nullable=False)
 
 
-    # relationships handled by backrefs
+    # relationships
+
+    # local
+    clearance_lvl: Mapped["ClearanceLvl"] = rel('ClearanceLvl', back_pop='scps')
+
+    containment_class: Mapped["ContainmentClass"] = rel('ContainmentClass', back_pop='scps')
+    secondary_class: Mapped["SecondaryClass | None"] = rel('SecondaryClass', back_pop='scps')
+
+    disruption_class: Mapped["DisruptionClass | None"] = rel('DisruptionClass', back_pop='scps')
+    risk_class: Mapped["RiskClass | None"] = rel('RiskClass', back_pop='scps')
+
+    site_responsible: Mapped["Site | None"] = rel('Site', back_pop='scps')
+    mtf: Mapped["MTF | None"] = rel('MTF', back_pop='scps')
+
 
 
     __table_args__ = (
@@ -185,8 +201,26 @@ class SCP(Base):
         Index('idx_scps_site_responsible_id', site_responsible_id),
         Index('idx_scps_assigned_task_force_id', assigned_task_force_id),
         Index('idx_scps_status', status),
+        Index('idx_scps_created_at', 'created_at'),
         Index('idx_scps_updated_at', 'updated_at')
     )
+
+
+    def __repr__(self):
+        return (
+                f"<SCP(id={self.id}, "
+                f"clearance_lvl_id={self.clearance_lvl_id}, "
+                f"containment_class_id={self.containment_class_id}, "
+                f"secondary_class_id={self.secondary_class_id}, "
+                f"disruption_class_id={self.disruption_class_id}, "
+                f"risk_class_id={self.risk_class_id}, "
+                f"site_responsible_id={self.site_responsible_id}, "
+                f"assigned_task_force_id={self.assigned_task_force_id}, "
+                f"status='{self.status}', "
+                f"created_at={self.created_at}, updated_at={self.updated_at}"
+                ")>"
+               )
+
 
 class MTF(Base):
     __tablename__ = 'mtfs'
@@ -199,9 +233,16 @@ class MTF(Base):
 
     active = Column(Boolean, default=True, nullable=False)
 
-    # relationships _mostly_ handled by backrefs
-    leader = User_rel(__tablename__, [leader_id])
-    scps = SCP_rel(__tablename__)
+    # relationships
+
+    # local
+    leader: Mapped["User | None"] = relationship('User', back_populates='led_mtfs', foreign_keys=[leader_id])
+    site: Mapped["Site | None"] = rel('Site', back_pop='mtfs')
+
+    # acknowledge other tables
+    scps: Mapped[list["SCP"]] = rel('SCP', back_pop='mtf')
+    members: Mapped[list["User"]] = relationship('User', back_populates='mtf', foreign_keys='User.mtf_id')
+
 
 
     __table_args__ = (
@@ -210,8 +251,19 @@ class MTF(Base):
         Index('idx_mtfs_nickname', nickname),
         Index('idx_mtfs_leader_id', leader_id),
         Index('idx_mtfs_site_id', site_id),
+        Index('idx_mtfs_created_at', 'created_at'),
         Index('idx_mtfs_updated_at', 'updated_at')
     )
+
+    def __repr__(self):
+        return (
+                f"<MTF(id={self.id}, name='{self.name}', "
+                f"nickname='{self.nickname}', leader_id={self.leader_id}, "
+                f"site_id={self.site_id}, active={self.active}, "
+                f"created_at={self.created_at}, updated_at={self.updated_at}"
+                ")>"
+               )
+
 
 class Site(Base):
     __tablename__ = 'sites'
@@ -220,15 +272,31 @@ class Site(Base):
     director_id = col_int_fk('users.id', True)
 
 
-    director = User_rel(__tablename__, [director_id])
-    scps = SCP_rel(__tablename__)
-    mtfs = ref_rel('MTF', __tablename__)
+    # relationships
+
+    # local
+    director: Mapped["User | None"] = rel('User', back_pop='directed_sites', keys=[director_id])
+
+    # acknowledge other tables
+    scps: Mapped[list["SCP"]] = rel('SCP', back_pop='site_responsible')
+    mtfs: Mapped[list["MTF"]] = rel('MTF', back_pop='site')
+    staff: Mapped[list["User"]] = relationship('User', back_populates='site', foreign_keys='User.site_id')
 
     __table_args__ = (
         Index('idx_sites_name', name),
         Index('idx_sites_director', director_id),
+        Index('idx_sites_created_at', 'created_at'),
         Index('idx_sites_updated_at', 'updated_at')
     )
+
+    def __repr__(self):
+        return (
+                f"<Site(id={self.id}, name='{self.name}', "
+                f"director_id={self.director_id}, "
+                f"created_at={self.created_at}, updated_at={self.updated_at}"
+                ")>"
+               )
+
 
 class AuditLog(Base):
     __tablename__ = 'audit_log'
@@ -240,31 +308,56 @@ class AuditLog(Base):
     details = col_str(255, nullable=False) # additional details about the action
     status = Column(Boolean, nullable=False) # success or failure of the action
 
-    timestamp = Column(DateTime, default=datetime.now, nullable=False)
 
-    user = pops_rel('User', 'audit_logs')
+    # acknowledge user relationship
+    user: Mapped["User"] = rel('User', back_pop='audit_logs')
+
+    @validates('user_ip')
+    def validate_ip(self, key, value):
+        try:
+            ipaddress.ip_address(value)
+        except ValueError:
+            raise ValueError(f'Error with {key!r}: Provided value is not a valid IP address')
+        return value
 
     __table_args__ = (
         Index('idx_audit_user_id', user_id),
         Index('idx_audit_user_ip', user_ip),
-        Index('idx_audit_timestamp', timestamp)
+        Index('idx_audit_created_at', 'created_at'),
+        Index('idx_audit_updated_at', 'updated_at')
     )
+
+    def __repr__(self):
+        return (
+                f"<AuditLog(id={self.id}, user_id={self.user_id}, "
+                f"user_ip='{self.user_ip}', action='{self.action}', "
+                f"details='{self.details}', status={self.status}, "
+                f"created_at={self.created_at}, updated_at={self.updated_at}"
+                ")>"
+               )
 
 # ==== Helper Models ====
 
 # clearance lvls for users and
 # classification lvls for scps
-class ClearanceLevel(HelperTableMixin, Base):
-    __tablename__ = 'clearance_levels'
+class ClearanceLvl(HelperTableMixin, Base):
+    __tablename__ = 'clearance_lvls'
 
     # relationships
-    users = User_rel(__tablename__)
-    scps = SCP_rel(__tablename__)
+    users: Mapped[list["User"]] = rel('User', back_pop='clearance_lvl')
+    scps: Mapped[list["SCP"]] = rel('SCP', back_pop='clearance_lvl')
 
     __table_args__ = (
-        Index(f'idx_clearance_levels_name', 'name'),
-        Index(f'idx_clearance_levels_updated_at', 'updated_at')
+        Index(f'idx_clearance_lvls_name', 'name'),
+        Index(f'idx_clearance_lvls_updated_at', 'updated_at')
     )
+
+    def __repr__(self):
+        return (
+                f"<ClearanceLvl(id={self.id}, name='{self.name}', "
+                f"created_at={self.created_at}, updated_at={self.updated_at}"
+                ")>"
+               )
 
 
 # SCP specific models
@@ -272,45 +365,73 @@ class ContainmentClass(HelperTableMixin, Base):
     __tablename__ = 'containment_classes'
 
     # relationships
-    scps = SCP_rel(__tablename__)
+    scps: Mapped[list["SCP"]] = rel('SCP', back_pop='containment_class')
 
     __table_args__ = (
         Index(f'idx_containment_classes_name', 'name'),
         Index(f'idx_containment_classes_updated_at', 'updated_at')
     )
 
+    def __repr__(self):
+        return (
+                f"<ContainmentClass(id={self.id}, name='{self.name}', "
+                f"created_at={self.created_at}, updated_at={self.updated_at}"
+                ")>"
+               )
+
 class SecondaryClass(HelperTableMixin, Base):
     __tablename__ = 'secondary_classes'
 
     # relationships
-    scps = SCP_rel(__tablename__)
+    scps: Mapped[list["SCP"]] = rel('SCP', back_pop='secondary_class')
 
     __table_args__ = (
         Index(f'idx_secondary_classes_name', 'name'),
         Index(f'idx_secondary_classes_updated_at', 'updated_at')
     )
 
+    def __repr__(self):
+        return (
+                f"<SecondaryClass(id={self.id}, name='{self.name}', "
+                f"created_at={self.created_at}, updated_at={self.updated_at}"
+                ")>"
+               )
+
 class DisruptionClass(HelperTableMixin, Base):
     __tablename__ = 'disruption_classes'
 
     # relationships
-    scps = SCP_rel(__tablename__)
+    scps: Mapped[list["SCP"]] = rel('SCP', back_pop='disruption_class')
 
     __table_args__ = (
         Index(f'idx_disruption_classes_name', 'name'),
         Index(f'idx_disruption_classes_updated_at', 'updated_at')
     )
 
+    def __repr__(self):
+        return (
+                f"<DisruptionClass(id={self.id}, name='{self.name}', "
+                f"created_at={self.created_at}, updated_at={self.updated_at}"
+                ")>"
+               )
+
 class RiskClass(HelperTableMixin, Base):
     __tablename__ = 'risk_classes'
 
     # relationships
-    scps = SCP_rel(__tablename__)
+    scps: Mapped[list["SCP"]] = rel('SCP', back_pop='risk_class')
 
     __table_args__ = (
         Index(f'idx_risk_classes_name', 'name'),
         Index(f'idx_risk_classes_updated_at', 'updated_at')
     )
+
+    def __repr__(self):
+        return (
+                f"<RiskClass(id={self.id}, name='{self.name}', "
+                f"created_at={self.created_at}, updated_at={self.updated_at}"
+                ")>"
+               )
 
 
 # all user titles
@@ -318,12 +439,19 @@ class Title(HelperTableMixin, Base):
     __tablename__ = 'titles'
 
     # relationships
-    users = User_rel(__tablename__)
+    users: Mapped[list["User"]] = rel('User', back_pop='title')
 
     __table_args__ = (
         Index(f'idx_titles_name', 'name'),
         Index(f'idx_titles_updated_at', 'updated_at')
     )
+
+    def __repr__(self):
+        return (
+                f"<Title(id={self.id}, name='{self.name}', "
+                f"created_at={self.created_at}, updated_at={self.updated_at}"
+                ")>"
+               )
 
 
 # ==== Table related lists & funcs ====
@@ -335,7 +463,7 @@ VALID_TABLES = [
     'sites',
     'audit_log',
 
-    'clearance_levels',
+    'clearance_lvls',
     'containment_classes',
     'secondary_classes',
     'disruption_classes',
@@ -353,7 +481,7 @@ VALID_MODELS = [
     'AuditLog',
 
     # helper tables
-    'ClearanceLevel',
+    'ClearanceLvl',
     'ContainmentClass',
     'SecondaryClass',
     'DisruptionClass',
@@ -382,7 +510,7 @@ class MainModels:
     AuditLog = AuditLog
 
 class HelperModels:
-    ClearanceLevel = ClearanceLevel
+    ClearanceLvl = ClearanceLvl
 
     ContainmentClass = ContainmentClass
     SecondaryClass = SecondaryClass
