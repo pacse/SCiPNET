@@ -2,7 +2,7 @@
 BaseModels to store used information
 (by client) provided by the deepwell
 """
-from pydantic import IPvAnyAddress, Field, BaseModel as Base
+from pydantic import IPvAnyAddress, BaseModel as Base
 from datetime import datetime
 from typing import Literal
 
@@ -133,3 +133,16 @@ Site.model_rebuild()
 MTF.model_rebuild()
 SCP.model_rebuild()
 AuditLog.model_rebuild()
+
+
+# namespace
+class Models:
+    User = User
+    Site = Site
+    MTF = MTF
+    SCP = SCP
+    AuditLog = AuditLog
+
+    IDandName = IDandName
+
+    SCPColours = SCPColours
