@@ -3,8 +3,8 @@ All SQLAlchemy table definitions for
 SCiPnet.db and related table information/funcs
 """
 
-from sqlalchemy import (Column, Integer, String, Boolean, DateTime,
-                        ForeignKey, Index, CheckConstraint)
+from sqlalchemy import (Column, Integer, String, Boolean,
+                        DateTime, ForeignKey, Index)
 
 from sqlalchemy.orm import (relationship, DeclarativeBase,
                             validates, Mapped)
@@ -167,9 +167,6 @@ class SCP(Base):
     site_responsible_id = col_int_fk('sites.id', True)
     assigned_task_force_id = col_int_fk('mtfs.id', True)
 
-    status = Column(String(15), default='active', nullable=False)
-
-
     # relationships
 
     # local
@@ -187,10 +184,6 @@ class SCP(Base):
 
 
     __table_args__ = (
-        CheckConstraint(
-            "status IN ('active', 'neutralized', 'explained', 'deleted')",
-            name='status_check'
-        ),
 
         # table indexes (maybe _every_ col is overkill but we ball)
         Index('idx_scps_clearance_lvl_id', clearance_lvl_id),
@@ -200,7 +193,6 @@ class SCP(Base):
         Index('idx_scps_risk_class_id', risk_class_id),
         Index('idx_scps_site_responsible_id', site_responsible_id),
         Index('idx_scps_assigned_task_force_id', assigned_task_force_id),
-        Index('idx_scps_status', status),
         Index('idx_scps_created_at', 'created_at'),
         Index('idx_scps_updated_at', 'updated_at')
     )
@@ -216,7 +208,6 @@ class SCP(Base):
                 f"risk_class_id={self.risk_class_id}, "
                 f"site_responsible_id={self.site_responsible_id}, "
                 f"assigned_task_force_id={self.assigned_task_force_id}, "
-                f"status='{self.status}', "
                 f"created_at={self.created_at}, updated_at={self.updated_at}"
                 ")>"
                )

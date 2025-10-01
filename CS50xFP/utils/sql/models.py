@@ -4,7 +4,6 @@ BaseModels to store used information
 """
 from pydantic import IPvAnyAddress, BaseModel as Base
 from datetime import datetime
-from typing import Literal
 
 # helpers
 class ORMBase(Base):
@@ -91,8 +90,8 @@ class SCPColours(Base):
     """
     class_lvl: str
     cont_clss: str
-    disrupt_clss: str
-    rsk_clss: str
+    disrupt_clss: str | None
+    rsk_clss: str | None
 
 
 class SCP(ORMBase):
@@ -110,9 +109,6 @@ class SCP(ORMBase):
 
     site_responsible_id: int | None = None
     mtf: "MTF | None" = None
-
-    status: Literal['active', 'neutralized', 'explained', 'deleted'] = 'active'
-
 
 class AuditLog(ORMBase):
     """
