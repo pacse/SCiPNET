@@ -76,11 +76,11 @@ class DatabaseSessionError(DatabaseError):
 
 def FieldError(field: str,
                field_val: Any,
-               expected_and_got: str
+               expected: str
               ) -> ValueError:
     """
     A formatted ValueError:
-    `Invalid {field}: {field_val!r} (expected {expected_and_got})`
+    `Invalid {field}: {field_val!r} (expected {expected})`
     """
     return ValueError((f'Invalid {field}: {field_val!r}'
-                       f' (expected {expected_and_got})'))
+                       f' (expected {expected})'))
