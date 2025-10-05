@@ -1,8 +1,55 @@
-Update params for art.py:
-- login
-  - usr_title_name (eg. 'Site Director')
-  - usr_clearance_level_name (eg. 'Level 1 - Unrestricted')
-  - usr_name
+To include in pydantic models:
+```
+NOTE:
+  - use a tuple where both helpful: (id, name)
+  - id without an example means int
+  - name without an example means str
+```
+- user
+  - user id
+  - full name
+  - title name: 'Site Director'
+  - clearance lvl: (1, 'Level 1 - Unrestricted')
+  - assigned site id
+
+
+- scp
+  - scp id
+  - classification lvl: (1, 'Level 1 - Unrestricted')
+  - containment class: (1, 'Safe')
+  - secondary class: (1, 'Thaumiel')
+  - risk class: (1, 'Level 1 - Notice')
+  - disruption class: (1, 'Level 1 - Dark')
+  - site responsible id
+  - assigned task force name
+  - status: ('active', 'neutralized', 'explained', 'deleted')
+  - created_at: sql datetime
+  - updated_at: sql datetime
+
+- scp_colours: #XXXXXX
+  - classification lvl
+  - containment class
+  - secondary class
+  - risk class
+  - disruption class
+
+
+- site
+  - site name
+  - site id
+  - director: (1, 'John Doe')
+  - site location: str
+
+
+- mtf
+  - mtf name
+  - mtf nickname
+  - mtf id
+  - assigned site id
+  - leader: (1, 'John Doe')
+  - active: bool
+
+
 - redacted
   - file_classification: 'Level 1 - Unrestricted', etc.
   - usr_clearance: 'Level 1 - Unrestricted', etc.
