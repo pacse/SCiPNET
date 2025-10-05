@@ -1,14 +1,5 @@
-'''
-Low level functions and vars
-'''
-from typing import TypeAlias, Any
 from os import name, system
 from datetime import datetime
-
-Unknown: TypeAlias = Any
-'''temp type for incomplete type annotations'''
-
-
 def clear() -> None:
     '''
     Clear the screen
