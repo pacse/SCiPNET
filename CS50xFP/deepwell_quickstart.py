@@ -90,7 +90,7 @@ for r_clss in [
                'Level 2 - Caution',
                'Level 3 - Warning',
                'Level 4 - Danger',
-               'Critical'
+               'Level 5 - Critical'
             ]:
     session.add(
         HelperModels.RiskClass(name=r_clss)

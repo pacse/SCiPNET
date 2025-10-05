@@ -5,22 +5,28 @@ BaseModels to store used information
 from pydantic import IPvAnyAddress, BaseModel as Base
 from datetime import datetime
 
+class FromAttributesMixin(Base):
+    """
+    Mixin to allow generation from SQLAlchemy models
+    """
+    model_config = {
+        'from_attributes': True
+    }
+
 # helpers
-class ORMBase(Base):
+class ORMBase(FromAttributesMixin):
     """
     BaseModel for all ORM models
-    (Allows generation from SQLAlchemy models)
+
+    All models have an id, created_at, and updated_at
     """
 
     id: int
     created_at: datetime
     updated_at: datetime
 
-    model_config = {
-        'from_attributes': True
-    }
 
-class IDandName(ORMBase):
+class IDandName(FromAttributesMixin):
     """
     BaseModel to store an id and name pair
     """
