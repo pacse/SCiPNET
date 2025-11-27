@@ -1,6 +1,7 @@
 """
 Helpers to process null values for bar templates
 """
+
 from ....sql.models import Models
 from ...config import CLEAR_LVL_COLOURS
 
@@ -9,6 +10,7 @@ from dataclasses import dataclass
 
 # dataclasses for processed data
 class ProcessedData:
+
     @dataclass
     class SCP:
         site_resp: str
@@ -20,6 +22,8 @@ class ProcessedData:
 
         risk_class: str
         risk_class_hex: str | None
+
+    # @dataclass
 
 
 def scp(

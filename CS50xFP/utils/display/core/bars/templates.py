@@ -1,54 +1,66 @@
 """
 Functions and classes for rendering bars (eg. ACS)
+
+Contains:
+- BarTemplate: Template for user/site/SCP/MTF display bars
+- scp_bar: Renders an ACS bar
 """
 
 from rich.console import Console
 
-from .lines import *
+from .lines import print_piped_line
 from . import null_processors
 
 from ...config import (CLEAR_LVL_COLOURS, SIZE,
-                       CONT_CLASS_COLOURS)
                        CONT_CLASS_COLOURS, MIN_TERM_WIDTH)
 from ....sql.models import Models
+from ....sql.exceptions import FieldError
 
-from typing import cast
+from typing import Literal
+
 
 # ACS et al. bar template
 class BarTemplate:
     """
-    Template for bars used in user/site/SCP/MTF display
+    Template for rendering user/site/SCP/MTF display bars
+
+    Args:
+        has_center_column (bool): Whether the bar has a center column
+        width (int): Total width of the bar
+        console (Console | None): Console to print to
     """
 
     def __init__(self,
                  has_center_column: bool = False,
-                 width: int = MIN_TERMINAL_WIDTH,
+                 width: int = MIN_TERM_WIDTH,
                  console: Console | None = None
                 ) -> None:
-        self.has_center_column = has_center_column
-        self.width = width
-        self.console = console if console else Console()
-        self.left_align = ' ' * ((SIZE - MIN_TERMINAL_WIDTH) // 2)
 
-        if has_center_column:
-            tmp = 3 # 3 columns
-        else:
-            tmp = 2 # 2 columns
 
-        length = (width - 2) // tmp
-        if (length * tmp) + 2 != width:
+        # === Init self variables ===
+        self.cols: Literal[2, 3] = 3 if has_center_column else 2  # number of columns
+        self.width = width                                        # total width of bar
+        self.console = console if console else Console()          # Console to print to
+        self.left_align = ' ' * ((SIZE - MIN_TERM_WIDTH) // 2)    # spaces to left align
+
+
+        # === Handle length calculation ===
+        length = (width - 2) // self.cols
+
+        if (length * self.cols) + 2 != width:
             raise FieldError(
                              'width',
                              width,
-                             f'a multiple of {tmp} plus 2'
+                             f'a multiple of {self.cols} plus 2'
                             )
 
+        self.length = length
+
+
+        # === Prepare separator lines ===
         rept = '═' * length
 
-        self.length = length
-        self.cols = tmp
-
-        if has_center_column:
+        if self.cols == 3:
             self.sep = {
                         't':f'╔{rept}╦{rept}╦{rept}╗',
                         'm':f'╠{rept}╬{rept}╬{rept}╣',
@@ -68,9 +80,13 @@ class BarTemplate:
                   ) -> None:
         """
         Renders a separator line
+
+        Args:
+            pos ('t', 'm', 'b'): Position of separator
         """
         try:
             self.console.print(f'{self.left_align}{self.sep[pos]}')
+
         except KeyError:
             raise FieldError(
                 'pos', pos,
@@ -79,30 +95,34 @@ class BarTemplate:
 
 
     def render_line(self,
-                    # most complicated type you'll ever see :)
-                    # (args for print_piped line)
                     texts: list[str],
                     hex_colours: list[str | None],
                     default_colourings: list[bool],
                     cols: int,
                     sides: list[Literal['l', 'c', 'r']] | None = None
                    ) -> None:
+        """
+        Renders a line with given texts and colourings
+        (Utilises print_piped_line from ./lines.py)
+        """
 
         # set default
-        if sides is None and not self.has_center_column:
-            # alternate left and right
-            sides = ['l', 'r'] * (len(texts) // 2) # type: ignore
-        elif sides is None and self.has_center_column:
-            # alternate left, center, right
-            sides = ['l', 'c', 'r'] * (len(texts) // 3) # type: ignore
+        if sides is None:
+            if self.cols == 2:
+                # left and right
+                sides = ['l', 'r']
+            else:
+                # left, center, right
+                sides = ['l', 'c', 'r']
 
-        # update type
-        sides = cast(list[Literal['l', 'c', 'r']], sides)
 
         # input validation
-        if self.has_center_column and (n := len(texts)) != 3:
-            raise ValueError(f'Expected 3 columns, got {n}')
-
+        if len(texts) % self.cols != 0:
+            raise FieldError(
+                'texts',
+                texts,
+                f'a multiple of {self.cols}'
+            )
 
         if not len(texts) == len(sides) == len(hex_colours)\
                 == len(default_colourings):
@@ -114,7 +134,7 @@ class BarTemplate:
             print_piped_line(
                              console=self.console,
                              string=texts[i],
-                             side=sides[i],
+                             side=sides[i % len(sides)],
                              hex_colour=hex_colours[i],
                              width=self.length,
                              default_colouring=default_colourings[i],
@@ -129,12 +149,14 @@ def scp_bar(
             out_console: Console | None = None
            ) -> None:
     """
-    Displays a SCP after requested by user
+    Displays an ACS-style SCP bar for provided SCP info
     """
 
+    # init base render class
     base = BarTemplate(console = out_console)
 
-    # === Process null values ===
+
+    # process null values
     processed = null_processors.scp(info)
 
 
@@ -164,7 +186,7 @@ def scp_bar(
         hex_colours = [
                        CONT_CLASS_COLOURS.get(info.containment_class.name),
                        processed.disrupt_class_hex,
-                       CLEAR_LVL_COLOURS[5],
+                       CONT_CLASS_COLOURS.get(processed.secondary_class),
                        processed.risk_class_hex
                       ],
         default_colourings = [False] * 4,
