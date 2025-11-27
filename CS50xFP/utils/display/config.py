@@ -22,7 +22,7 @@ import logging
 logging.getLogger('markdown_it').setLevel(logging.WARNING)
 
 # Mayuk numbers
-MIN_TERMINAL_WIDTH = 120
+MIN_TERM_WIDTH = 120
 """Minimum terminal width required for proper display"""
 
 BAR_WIDTH = 58
@@ -47,9 +47,9 @@ except ImportError:
         ' Thou art a magician. HOW!'
     )
 
-if SIZE < MIN_TERMINAL_WIDTH:
+if SIZE < MIN_TERM_WIDTH:
     raise Exception(
-        f'Requires terminal size of {MIN_TERMINAL_WIDTH}'
+        f'Requires terminal size of {MIN_TERM_WIDTH}'
         f' columns (current size {SIZE})'
         )
 
@@ -98,7 +98,7 @@ keys are containment classes
 
 # what's importable
 __all__ = [
-    'MIN_TERMINAL_WIDTH',
+    'MIN_TERM_WIDTH',
     'BAR_WIDTH',
     'BOX_SIZE',
     'SIZE',

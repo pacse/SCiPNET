@@ -9,6 +9,7 @@ from . import null_processors
 
 from ...config import (CLEAR_LVL_COLOURS, SIZE,
                        CONT_CLASS_COLOURS)
+                       CONT_CLASS_COLOURS, MIN_TERM_WIDTH)
 from ....sql.models import Models
 
 from typing import cast

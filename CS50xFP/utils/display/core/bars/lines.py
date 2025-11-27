@@ -5,7 +5,7 @@ Helpers for printing piped lines and `print_piped_line()`
 from rich.console import Console
 from rich.text import Text
 
-from ...config import SIZE, HEX_CODE_REGEX, MIN_TERMINAL_WIDTH
+from ...config import SIZE, HEX_CODE_REGEX, MIN_TERM_WIDTH
 from ....sql.exceptions import FieldError
 
 from typing import Literal
@@ -32,7 +32,7 @@ def calc_line_spacing(string: str,
 
     returns (outer_space, inner_space, use_extra)
     """
-    outer_space = bar_width if bar_width else (SIZE - MIN_TERMINAL_WIDTH) // 2
+    outer_space = bar_width if bar_width else (SIZE - MIN_TERM_WIDTH) // 2
 
     inner_space = (line_width - len(string)) // 2
 
@@ -218,5 +218,5 @@ def print_piped_line(console: Console,
 
 __all__ = [
     'print_piped_line', 'Literal', 'FieldError',
-    'MIN_TERMINAL_WIDTH'
+    'MIN_TERM_WIDTH'
 ]
