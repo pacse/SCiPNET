@@ -159,10 +159,10 @@ def _print_formatted_text(
     split_string = string.split(':', 1)
 
     # input validation
-    if len(split_string) != 2:
+    if len(split_string) != 2 or ':' in split_string[1]:
         raise ValueError((
-                          'ERROR WITH _print_formatted_text: Invalid '
-                          f'string {string!r}. Must contain a colon (:).'
+                          'ERROR WITH _print_formatted_text: Invalid string'
+                          f' {string!r}. Must contain a single colon (:).'
                         ))
 
     # first string is bold
@@ -180,7 +180,7 @@ def _print_formatted_text(
 
 def print_piped_line(console: Console,
                      string: str,
-                     side: Literal['l','r','c'],
+                     side: Literal['l', 'r', 'c'],
                      hex_colour: str | None = None,
                      width: int = 58,
                      outer_space: int | None = None,
