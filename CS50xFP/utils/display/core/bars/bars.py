@@ -10,6 +10,7 @@ Contains:
 from . import null_processors
 from .template import BarTemplate
 from ...config import CLEAR_LVL_COLOURS, CONT_CLASS_COLOURS
+from ...helpers import printc
 from ....sql.models import Models
 
 from rich.console import Console
@@ -29,7 +30,7 @@ def acs_bar(
     """
 
     # init base render class
-    base = BarTemplate(console)
+    base = BarTemplate(console, is_acs = True)
 
     # process null values
     processed = null_processors.scp(info)
@@ -82,19 +83,99 @@ def acs_bar(
 
 def site_bar(
             info: Models.Site,
+            loc: str,
             console: Console | None = None
            ) -> None:
     """
     Displays a bar for provided Site info
     Args:
         info (Models.Site): Site info to display
+        loc (str): Location of the site
+        console (Console | None): Console to print to
+    """
+
+    # init base render class
+    base = BarTemplate(console, has_center_column=True)
+
+    # process null values
+    processed = null_processors.site(info)
+
+    # === Render ===
+    base._render_sep('t')
+    printc(f'║{processed.name:^{base.width}}║')
+    base._render_sep('m')
+    base.render_lines(
+                      [
+                       f'ID: Site-{info.id:03d}',
+                       f'Director: {processed.director_str}',
+                       f'Location: {loc}'
+                      ],
+                      [None] * 3,
+                      [True] * 3,
+                     )
+    base._render_sep('b')
+
+
+def mtf_bar(
+            info: Models.MTF,
+            console: Console | None = None
+           ) -> None:
+    """
+    Displays a bar for provided MTF info
+    Args:
+        info (Models.MTF): MTF info to display
+        console (Console | None): Console to print to
+    """
+
+    # init base render class
+    base = BarTemplate(console, has_center_column=True)
+
+    # process null values
+    processed = null_processors.mtf(info)
+
+    # === Render ===
+    base._render_sep('t')
+    printc(f'║{processed.name_str:^{base.width}}║')
+    base._render_sep('m')
+    base.render_lines(
+                      [
+                       f'Assigned Site: {processed.site}',
+                       f'Leader: {processed.leader_str}',
+                       f'Active: {processed.active}'
+                      ],
+                      [None] * 3,
+                      [True] * 3,
+                     )
+    base._render_sep('b')
+
+
+def user_bar(
+             info: Models.User,
+             console: Console | None = None
+            ) -> None:
+    """
+    Displays a bar for provided User info
+    Args:
+        info (Models.User): User info to display
         console (Console | None): Console to print to
     """
 
     # init base render class
     base = BarTemplate(console)
 
-    # 
+    # process null values
+    processed = null_processors.user(info)
 
     # === Render ===
-
+    base._render_sep('t')
+    printc(f'║{processed.name_str:^{base.width}}║')
+    base._render_sep('m')
+    base.render_lines(
+                      [
+                       f'Assigned Site: {processed.site}',
+                       f'Clearance Level: {processed.clearance}'
+                      ],
+                      [None] * 2,
+                      [True] * 2,
+                     )
+    base._render_sep('b')
