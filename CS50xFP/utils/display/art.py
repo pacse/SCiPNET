@@ -142,26 +142,6 @@ def display_site(info: Models.Site,
 
 
 # To display a MTF
-def mtf_bar(info: Models.MTF, console: Console) -> None:
-    if info.site:
-        site_name = f'Site-{info.site.id:03d}'
-    else:
-        site_name = '[REDACTED]'
-
-    if info.leader:
-        leader_name = f'{info.leader.name} (Personnel ID: {info.leader.id})'
-    else:
-        leader_name = '[REDACTED]'
-
-    print()
-    printc(f'╔{REPEATED}═{REPEATED}╗')
-    printc(f'║{f'MTF {info.name} {info.nickname!r} (MTF ID: {info.id})':^117}║')
-    printc(f'╠{REPEATED}═{REPEATED}╣')
-    print_piped_line(console, f'Assigned Site: {site_name}', 'l', width=40, default_colouring=False)
-    print_piped_line(console, f'Leader: {leader_name}', 'c', width=51, default_colouring=False)
-    print_piped_line(console, f'Active: {'Yes' if info.active else 'No'}', 'r', width=25, default_colouring=False)
-    printc(f'╚{REPEATED}═{REPEATED}╝')
-    print()
 
 def display_mtf(info: Models.MTF, mission: str, console: Console) -> None:
     """
@@ -180,19 +160,10 @@ def display_mtf(info: Models.MTF, mission: str, console: Console) -> None:
 
 
 # to display a user
-def user_bar(info: Models.User, console: Console) -> None:
-    print()
-    printc(f'╔{REPEATED}═{REPEATED}╗')
-    printc(f'║{f'{info.title.name} {info.name} (ID: {info.id})':^117}║')
-    printc(f'╠{REPEATED}═{REPEATED}╣')
-    print_piped_line(console, f'Assigned Site: Site-{info.site_id:02d}', 'c', default_colouring=False)
-    print_piped_line(console, f'Clearance Level: {info.clearance_lvl.name}', 'r', default_colouring=False)
-
-    printc(f'╚{REPEATED}═{REPEATED}╝')
-    print()
-
 
 def display_user(info: Models.User, console: Console) -> None:
     # just a bar for now, no other files
     user_bar(info, console)
+
+    print()
 
