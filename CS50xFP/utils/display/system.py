@@ -105,7 +105,8 @@ def login(usr: Models.User) -> None:
 
     Art by ChatGPT
     """
-    # lines we'll use a few times
+
+    # reused strs
     reused1 = '/' * 4 + ' ' * 112 + '/' * 4
     reused2 = '/' * 120
     title = usr.title.name
@@ -181,3 +182,22 @@ __all__ = [
     'startup',
     'login'
 ]
+
+
+if __name__ == '__main__':
+    print('Testing system display functions...\n\n')
+    startup()
+
+    test_user = Models.User(
+        id=1,
+        name='Jane Doe',
+        title=Models.IDandName(id=2, name='Site Director'),
+        clearance_lvl=Models.IDandName(id=5, name='Top Secret')
+    )
+    login(test_user)
+
+    test_user.title = Models.IDandName(id=1, name='O5 Council Member')
+    login(test_user)
+
+    test_user.title = Models.IDandName(id=0, name='Administrator')
+    login(test_user)
