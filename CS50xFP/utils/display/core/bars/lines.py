@@ -2,29 +2,29 @@
 Helpers for printing piped lines and `print_piped_line()`
 """
 
-from rich.console import Console
-from rich.text import Text
 
-from ...config import SIZE, HEX_CODE_REGEX, MIN_TERM_WIDTH
+from ...config import HEX_CODE_REGEX, SIZE, MIN_TERM_WIDTH
 from ....sql.exceptions import FieldError
 
+from rich.console import Console
+from rich.text import Text
 from typing import Literal
-
 from re import fullmatch
 
 
-def ne_print(string: str) -> None:
-    """
-    prints a string without a newline
-    """
+
+# === Helpers ===
+
+def _ne_print(string: str) -> None:
+    """ prints string without a newline """
     print(string, end='')
 
 
-
-def calc_line_spacing(string: str,
-                       line_width: int,
-                       bar_width: int | None = None
-                      ) -> tuple[int, int, bool]:
+def _calc_line_space(
+                    string: str,
+                    line_width: int,
+                    bar_width: int | None = None
+                   ) -> tuple[int, int, bool]:
     """
     Calculate outer & inner spacing for piped lines
     as well as whether or not an extra space is needed
@@ -44,14 +44,14 @@ def calc_line_spacing(string: str,
 
     return outer_space, inner_space, use_extra
 
-
-def handle_spacing(outer_space: int,
-                    inner_space: int,
-                    use_extra: bool,
-                    side: Literal['l', 'r', 'c'] = 'l',
-                    is_first: bool = True,
-                    cols: int = 2
-                   ) -> bool:
+def _handle_space(
+                 outer_space: int,
+                 inner_space: int,
+                 use_extra: bool,
+                 side: Literal['l', 'r', 'c'] = 'l',
+                 is_left: bool = True,
+                 cols: int = 2
+                ) -> bool:
 
     """
     Handles line spacing logic
@@ -72,25 +72,25 @@ def handle_spacing(outer_space: int,
     col_sep = {2:'║║', 3:'║'}[cols]
 
     # left of the text
-    if is_first:
+    if is_left:
         if side == 'l':
             # we need outer space
-            ne_print(f'{' ' * outer_space}║{' ' * inner_space}')
+            _ne_print(f'{' ' * outer_space}║{' ' * inner_space}')
 
 
         else:
             # no outer space
-            ne_print(f'{col_sep}{' ' * inner_space}')
+            _ne_print(f'{col_sep}{' ' * inner_space}')
 
 
         if use_extra or (side == 'c' and use_extra):
-            ne_print(' ')
+            _ne_print(' ')
             use_extra = not use_extra
 
 
     # right of the text
     else:
-        ne_print(f'{' ' * inner_space}{' ' if use_extra else ''}')
+        _ne_print(f'{' ' * inner_space}{' ' if use_extra else ''}')
 
         if side == 'r':
             # move to a newline
@@ -100,16 +100,16 @@ def handle_spacing(outer_space: int,
     return use_extra
 
 
+def _print_str(
+               console: Console,
+               string: str,
 
-def print_str(console: Console,
-              string: str,
+               hex_code: str | None = None,
+               bold: bool = True,
+               default_colouring: bool = False,
 
-              hex_code: str | None = None,
-              bold: bool = True,
-              default_colouring: bool = False,
-
-              end: str = ''
-             ) -> None:
+               end: str = ''
+              ) -> None:
     """
     prints `string` to `console` with
     optional `hex_code` colouring.
@@ -123,7 +123,7 @@ def print_str(console: Console,
     # other validation
     if hex_code and default_colouring:
         raise ValueError(
-            'Error [lines.py, print_str] Cannot use hex_code with default_colouring = True'
+            'Cannot use hex_code with default_colouring = True'
         )
 
 
@@ -146,11 +146,12 @@ def print_str(console: Console,
         console.print(string, style = style_str, end = end)
 
 
-def print_formatted_text(console: Console,
-                          string: str,
-                          hex_colour: str | None = None,
-                          default_colouring: bool = False
-                         ) -> None:
+def _print_formatted_text(
+                         console: Console,
+                         string: str,
+                         hex_colour: str | None = None,
+                         default_colouring: bool = False
+                        ) -> None:
     """
     Formats text for piped line printing
     """
@@ -165,13 +166,18 @@ def print_formatted_text(console: Console,
                         ))
 
     # first string is bold
-    ne_print(f'{split_string[0]}:')
+    _ne_print(f'{split_string[0]}:')
 
     # now second string
-    print_str(console, split_string[1], hex_colour, bold = True, default_colouring = default_colouring)
+    _print_str(
+               console, split_string[1], hex_colour,
+               True, default_colouring
+              )
 
 
-# bring it all together
+
+# === Main Function ===
+
 def print_piped_line(console: Console,
                      string: str,
                      side: Literal['l','r','c'],
@@ -181,8 +187,23 @@ def print_piped_line(console: Console,
                      default_colouring: bool = False,
                      cols: int = 2
                     ) -> None:
+    """
+    Renders a piped line to the console
 
-    # quick input validation
+    eg "  ║    Example: Text Here    ║   "
+
+    Args:
+        console: Console to print to
+        string: Text to print
+        side: Side to align text to ('l', 'r', 'c')
+        hex_colour: Optional hex colour code for text
+        width: Width of the line (default 58)
+        outer_space: Optional outer spacing (default calculated)
+        default_colouring: Whether or not to use default console colouring
+        cols: Number of columns (2 or 3)
+    """
+
+    # input validation
     if side not in ['l', 'r', 'c']:
         raise ValueError(
             f"Invalid side choice {side!r}. Must be 'l', 'r', or 'c'."
@@ -190,18 +211,18 @@ def print_piped_line(console: Console,
 
 
     # calculate spacing
-    outer_space, inner_space, use_extra = calc_line_spacing(
+    outer_space, inner_space, use_extra = _calc_line_space(
                                                 string, width, outer_space
                                             )
 
     # handle spacing on left side of line
-    use_extra = handle_spacing(
+    use_extra = _handle_space(
                     outer_space, inner_space,
                     use_extra, side, True, cols
                 )
 
     # print line
-    print_formatted_text(
+    _print_formatted_text(
                          console,
                          string,
                          hex_colour,
@@ -209,14 +230,7 @@ def print_piped_line(console: Console,
                         )
 
     # print right space
-    use_extra = handle_spacing(
+    use_extra = _handle_space(
                     outer_space, inner_space,
                     use_extra, side, False, cols
                 )
-
-
-
-__all__ = [
-    'print_piped_line', 'Literal', 'FieldError',
-    'MIN_TERM_WIDTH'
-]
