@@ -86,21 +86,6 @@ def display_scp(info: Models.SCP,
 
 
 # To display a site
-def site_bar(info: Models.Site, loc: str, console: Console) -> None:
-    if info.director:
-        director_str = f'Director: {info.director.name} (ID: {info.director.id})'
-    else:
-        director_str = 'Director: [REDACTED]'
-
-    print()
-    printc(f'╔{REPEATED}═{REPEATED}╗')
-    printc(f'║{info.name:^117}║')
-    printc(f'╠{REPEATED}═{REPEATED}╣')
-    print_piped_line(console, f'ID: {info.id:03d}', 'l', width=28, default_colouring=False)
-    print_piped_line(console, director_str, 'c', width=29, default_colouring=False)
-    print_piped_line(console, f'Location: {loc}', 'r', default_colouring=False)
-    printc(f'╚{REPEATED}═{REPEATED}╝')
-    print()
 
 def display_site(info: Models.Site,
                  site_loc: str, site_desc: str,
