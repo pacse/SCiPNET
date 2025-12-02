@@ -19,6 +19,8 @@ from ..sql.models import Models
 from time import sleep
 from random import expovariate, uniform, choice
 
+
+
 def sim_load() -> None:
     """
     Simulates loading for `startup()` bc it's cool
@@ -34,22 +36,19 @@ def sim_load() -> None:
 
 
     for line, min_t, max_t in base_lines:
-        t = expovariate(2)
-        sleep(t)
+        sleep(expovariate(2))
 
         printc(line, end='', flush=True)
 
         for _ in range(3):
-            t = uniform(min_t, max_t)
-            sleep(t)
+            sleep(uniform(min_t, max_t))
 
             line += ' .'
             print('\r' + line.center(SIZE), end='', flush=True)
 
         # occasional hiccup for 'lag'
         if choice([True, False, False, False]):
-            t = uniform(1, 2.5)
-            sleep(t)
+            sleep(uniform(1, 2.5))
 
 
     sleep(0.25)
@@ -176,12 +175,6 @@ def login(usr: Models.User) -> None:
 
     print_lines(lines)
 
-
-
-__all__ = [
-    'startup',
-    'login'
-]
 
 
 if __name__ == '__main__':
