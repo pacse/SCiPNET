@@ -12,16 +12,18 @@ def basic_box(lines: list[str], size: int = BOX_SIZE) -> None:
     # calculate box width
     box_width = size - 2
 
-    # reused str
+    # reused strs
     TOP_BOTTOM = '═' * box_width
+    EMPTY = f'║{' ' * box_width}║'
+
 
     # generate box
-    box = ['', f'╔{TOP_BOTTOM}╗', f'║{" "*box_width}║']
+    box = ['', f'╔{TOP_BOTTOM}╗', EMPTY]
 
     for line in lines:
         box.append(f'║{line.center(box_width)}║')
 
-    box.append(f'║{" "*box_width}║')
+    box.append(EMPTY)
     box.append(f'╚{TOP_BOTTOM}╝')
     box.append('')
 
