@@ -7,7 +7,7 @@ Contains:
 """
 
 
-from . import null_processors
+from .null_processors import ProcessedData as PD
 from .template import BarTemplate
 from ...config import CLEAR_LVL_COLOURS, CONT_CLASS_COLOURS
 from ...helpers import printc
@@ -18,23 +18,19 @@ from rich.console import Console
 # === Bar Implementations ===
 
 def acs_bar(
-            info: Models.SCP,
+            info: PD.SCP,
             console: Console | None = None
            ) -> None:
     """
     Displays an ACS-style bar for provided SCP info
 
     Args:
-        info (Models.SCP): SCP info to display
+        info (ProcessedData.SCP): SCP info to display
         console (Console | None): Console to print to
     """
 
     # init base render class
     base = BarTemplate(console, is_acs = True)
-
-    # process null values
-    processed = null_processors.scp(info)
-
 
     # === Render ===
 
@@ -53,15 +49,15 @@ def acs_bar(
 
     base.render_lines(
                       [
-                       f'Containment Class: {info.containment_class.name}',
-                       f'Disruption Class: {processed.disrupt_class}',
-                       f'Secondary Class: {processed.secondary_class}',
-                       f'Risk Class: {processed.risk_class}'
+                       f'Containment Class: {info.containment_class}',
+                       f'Disruption Class: {info.disrupt_class}',
+                       f'Secondary Class: {info.secondary_class}',
+                       f'Risk Class: {info.risk_class}'
                       ],
                       [
-                       CONT_CLASS_COLOURS.get(info.containment_class.name),
+                       CONT_CLASS_COLOURS.get(info.containment_class),
                        processed.disrupt_class_hex,
-                       CONT_CLASS_COLOURS.get(processed.secondary_class),
+                       CONT_CLASS_COLOURS.get(info.secondary_class),
                        processed.risk_class_hex
                       ],
                       [False] * 4,
@@ -71,8 +67,8 @@ def acs_bar(
 
     base.render_lines(
         texts = [
-                 f'Site Responsible: {processed.site_resp}',
-                 f'Assigned MTF: {processed.mtf_name}'
+                 f'Site Responsible: {info.site_resp}',
+                 f'Assigned MTF: {info.mtf_name}'
                 ],
         hex_colours = [None] * 2,
         default_colourings = [True] * 2,
@@ -82,14 +78,14 @@ def acs_bar(
 
 
 def site_bar(
-            info: Models.Site,
+            info: PD.Site,
             loc: str,
             console: Console | None = None
            ) -> None:
     """
     Displays a bar for provided Site info
     Args:
-        info (Models.Site): Site info to display
+        info (ProcessedData.Site): Site info to display
         loc (str): Location of the site
         console (Console | None): Console to print to
     """
@@ -97,17 +93,14 @@ def site_bar(
     # init base render class
     base = BarTemplate(console, has_center_column=True)
 
-    # process null values
-    processed = null_processors.site(info)
-
     # === Render ===
     base._render_sep('t')
-    printc(f'║{processed.name:^{base.width}}║')
+    printc(f'║{info.name:^{base.width}}║')
     base._render_sep('m')
     base.render_lines(
                       [
                        f'ID: Site-{info.id:03d}',
-                       f'Director: {processed.director_str}',
+                       f'Director: {info.director_str}',
                        f'Location: {loc}'
                       ],
                       [None] * 3,
@@ -117,31 +110,28 @@ def site_bar(
 
 
 def mtf_bar(
-            info: Models.MTF,
+            info: PD.MTF,
             console: Console | None = None
            ) -> None:
     """
     Displays a bar for provided MTF info
     Args:
-        info (Models.MTF): MTF info to display
+        info (ProcessedData.MTF): MTF info to display
         console (Console | None): Console to print to
     """
 
     # init base render class
     base = BarTemplate(console, has_center_column=True)
 
-    # process null values
-    processed = null_processors.mtf(info)
-
     # === Render ===
     base._render_sep('t')
-    printc(f'║{processed.name_str:^{base.width}}║')
+    printc(f'║{info.name_str:^{base.width}}║')
     base._render_sep('m')
     base.render_lines(
                       [
-                       f'Assigned Site: {processed.site}',
-                       f'Leader: {processed.leader_str}',
-                       f'Active: {processed.active}'
+                       f'Assigned Site: {info.site}',
+                       f'Leader: {info.leader_str}',
+                       f'Active: {info.active}'
                       ],
                       [None] * 3,
                       [True] * 3,
@@ -150,30 +140,27 @@ def mtf_bar(
 
 
 def user_bar(
-             info: Models.User,
+             info: PD.User,
              console: Console | None = None
             ) -> None:
     """
     Displays a bar for provided User info
     Args:
-        info (Models.User): User info to display
+        info (ProcessedData.User): User info to display
         console (Console | None): Console to print to
     """
 
     # init base render class
     base = BarTemplate(console)
 
-    # process null values
-    processed = null_processors.user(info)
-
     # === Render ===
     base._render_sep('t')
-    printc(f'║{processed.name_str:^{base.width}}║')
+    printc(f'║{info.name_str:^{base.width}}║')
     base._render_sep('m')
     base.render_lines(
                       [
-                       f'Assigned Site: {processed.site}',
-                       f'Clearance Level: {processed.clearance}'
+                       f'Assigned Site: {info.site}',
+                       f'Clearance Level: {info.clearance}'
                       ],
                       [None] * 2,
                       [True] * 2,
